@@ -85,6 +85,7 @@ body {
   padding: 15px 18px !important;
   justify-content: flex-start !important;
   min-height: 0 !important;
+  transition: none !important;   /* follow the finger 1:1 — no easing = no jitter */
 }
 .cards.stacked .card.dragging .chip,
 .cards.stacked .card.dragging .card-bottom { display: none !important; }

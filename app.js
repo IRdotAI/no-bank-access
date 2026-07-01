@@ -684,27 +684,31 @@ function renderShortcuts() {
     el.innerHTML = `<div class="shortcut-empty">No shortcuts yet. Fill in a payment below, then tap “Save current entry as a shortcut”.</div>`;
     return;
   }
-  el.innerHTML = state.shortcuts.map(s => {
-    const c = cat(s.category);
-    const amt = (s.dir === "in" ? "+" : "-") + money2(s.amount);
-    return `<span class="shortcut-chip" data-sc="${s.id}">
-      <span class="sc-emoji">${c.emoji}</span>
-      <span class="sc-name">${esc(s.where)}</span>
-      <span class="sc-amt ${s.dir === "in" ? "in" : ""}">${amt}</span>
-      <button type="button" class="sc-del" data-del="${s.id}" aria-label="Delete shortcut">×</button>
-    </span>`;
-  }).join("");
+  el.innerHTML = `<div class="shortcut-hint">Tap to log instantly · × to remove</div>` +
+    state.shortcuts.map(s => {
+      const c = cat(s.category);
+      const amt = (s.dir === "in" ? "+" : "-") + money2(s.amount);
+      return `<span class="shortcut-chip" data-sc="${s.id}">
+        <span class="sc-emoji">${c.emoji}</span>
+        <span class="sc-name">${esc(s.where)}</span>
+        <span class="sc-amt ${s.dir === "in" ? "in" : ""}">${amt}</span>
+        <button type="button" class="sc-del" data-del="${s.id}" aria-label="Delete shortcut">×</button>
+      </span>`;
+    }).join("");
 }
 
-function applyShortcut(s) {
-  setDir(s.dir);
-  txForm.amount.value = s.amount;
-  txForm.where.value = s.where;
-  if (state.cards.some(c => c.id === s.cardId)) txForm.cardId.value = s.cardId;
-  txCat = s.category;
-  txForm.category.value = s.category;
-  buildCatGrid();
-  toast(`Filled “${s.where}”`);
+/* One-tap: log the shortcut immediately, dated now. */
+function logShortcut(s) {
+  const cardId = state.cards.some(c => c.id === s.cardId) ? s.cardId : (state.cards[0] && state.cards[0].id);
+  if (!cardId) { toast("Add a card first"); return; }
+  state.tx.push({
+    id: uid(), dir: s.dir, amount: s.amount, where: s.where,
+    cardId, when: new Date().toISOString(), category: s.category, note: "",
+  });
+  save();
+  txModal.hidden = true;
+  render();
+  toast(`Logged ${s.where} · ${(s.dir === "in" ? "+" : "-")}${money2(s.amount)}`);
 }
 
 $("#shortcutsToggle").onclick = () => {
@@ -723,7 +727,7 @@ $("#shortcutsList").addEventListener("click", (e) => {
   const chip = e.target.closest("[data-sc]");
   if (chip) {
     const s = state.shortcuts.find(x => x.id === chip.dataset.sc);
-    if (s) applyShortcut(s);
+    if (s) logShortcut(s);
   }
 });
 

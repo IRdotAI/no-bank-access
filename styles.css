@@ -318,7 +318,7 @@ body {
   background: var(--bg-2);
   border-radius: 22px 22px 0 0;
   padding: 18px 16px calc(22px + env(safe-area-inset-bottom));
-  max-height: 92vh; overflow-y: auto;
+  max-height: 92vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
   animation: rise .22s ease;
 }
 @keyframes rise { from { transform: translateY(100%); } to { transform: none; } }
@@ -359,6 +359,7 @@ form input:focus, form select:focus { outline: none; border-color: var(--blue); 
   font-size: 16px; line-height: 1; cursor: pointer; padding: 0 3px; margin-left: 1px;
 }
 .shortcut-empty { color: var(--muted); font-size: 13px; padding: 2px 0 8px; }
+.shortcut-hint { color: var(--muted); font-size: 12px; width: 100%; margin-bottom: 2px; }
 
 .tx-search {
   width: 100%; padding: 11px 14px; margin-bottom: 12px;

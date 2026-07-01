@@ -787,6 +787,7 @@ document.body.addEventListener("click", (e) => {
   if (cardEl) {
     const id = cardEl.dataset.card;
     if (cardEl.closest("#cardsList")) {
+      if (suppressCardClick) { suppressCardClick = false; return; }  // ignore the click after a drag
       // Home: tap selects the card to show its activity (tap again to clear)
       const was = selectedCardId;
       selectedCardId = selectedCardId === id ? null : id;
@@ -806,6 +807,56 @@ document.body.addEventListener("click", (e) => {
     if (t) openTxModal(t);
   }
 });
+
+/* ---------- Drag-to-reorder the card stack ---------- */
+const cardsEl = $("#cardsList");
+let cardDrag = null;
+let suppressCardClick = false;
+const DRAG_SLOT = 58;   // vertical distance between stacked card headers
+
+cardsEl.addEventListener("pointerdown", (e) => {
+  if (selectedCardId) return;                       // only in the stacked view
+  if (e.target.closest("button")) return;
+  const card = e.target.closest(".card");
+  if (!card || state.cards.length < 2) return;
+  const index = [...cardsEl.querySelectorAll(".card")].indexOf(card);
+  cardDrag = { card, index, startY: e.clientY, moved: false, pointerId: e.pointerId };
+});
+
+cardsEl.addEventListener("pointermove", (e) => {
+  if (!cardDrag) return;
+  const dy = e.clientY - cardDrag.startY;
+  if (!cardDrag.moved && Math.abs(dy) > 6) {
+    cardDrag.moved = true;
+    cardDrag.card.classList.add("dragging");
+    try { cardDrag.card.setPointerCapture(cardDrag.pointerId); } catch (_) {}
+  }
+  if (cardDrag.moved) {
+    e.preventDefault();
+    cardDrag.card.style.transform = `translateY(${dy}px) scale(1.03)`;
+  }
+});
+
+function endCardDrag(e) {
+  if (!cardDrag) return;
+  const d = cardDrag; cardDrag = null;
+  d.card.classList.remove("dragging");
+  d.card.style.transform = "";
+  if (!d.moved) return;                             // a tap → let the click handler select
+  const dy = (e.clientY ?? d.startY) - d.startY;
+  let target = Math.max(0, Math.min(state.cards.length - 1, d.index + Math.round(dy / DRAG_SLOT)));
+  suppressCardClick = true;
+  setTimeout(() => { suppressCardClick = false; }, 60);
+  if (target !== d.index) {
+    const [moved] = state.cards.splice(d.index, 1);
+    state.cards.splice(target, 0, moved);
+    save();
+    render();
+    toast("Cards reordered");
+  }
+}
+cardsEl.addEventListener("pointerup", endCardDrag);
+cardsEl.addEventListener("pointercancel", endCardDrag);
 
 /* ---------- Close modals ---------- */
 $$("[data-close]").forEach(b => b.onclick = () => {

@@ -218,9 +218,32 @@ body {
 .trends-total { font-size: 28px; font-weight: 800; margin: 6px 0 16px; }
 .trends-total small { font-size: 14px; color: var(--muted); font-weight: 500; display: block; }
 .cat-bars { display: flex; flex-direction: column; gap: 14px; }
-.cat-row .cat-top { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+.cat-row { cursor: pointer; }
+.cat-row.open { background: var(--panel-2); border-radius: 14px; padding: 12px; }
+.cat-row .cat-top { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; gap: 8px; }
 .cat-row .bar { height: 9px; border-radius: 6px; background: var(--panel-2); overflow: hidden; }
+.cat-row.open .bar { background: var(--panel); }
 .cat-row .bar > span { display: block; height: 100%; border-radius: 6px; }
+.cat-name { display: inline-flex; align-items: center; gap: 7px; }
+.cat-count { background: var(--panel-2); color: var(--muted); font-size: 11px; border-radius: 10px; padding: 1px 7px; }
+.cat-row.open .cat-count { background: var(--panel); }
+.cat-amt { font-weight: 600; white-space: nowrap; }
+.cat-pct { color: var(--muted); font-size: 12px; margin-left: 4px; font-weight: 500; }
+.cat-txs { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 2px; }
+
+/* Trends summary + filters */
+.tsum { display: flex; gap: 8px; margin-bottom: 14px; }
+.tsum-item { flex: 1; background: var(--panel-2); border-radius: 12px; padding: 10px 6px; text-align: center; }
+.tsum-item small { display: block; color: var(--muted); font-size: 11px; margin-bottom: 3px; }
+.tsum-item b { font-size: 15px; }
+.tsum-item b.pos { color: var(--green); }
+.tsum-item b.neg { color: var(--red); }
+#dirSegTrends { background: rgba(0,0,0,.28); }
+.trends-filters { display: flex; gap: 8px; margin: 12px 0 4px; }
+.trends-filters select {
+  flex: 1; padding: 10px; background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 12px; color: var(--text); font-size: 14px;
+}
 
 /* ---------- Payments tab ---------- */
 .pay-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }

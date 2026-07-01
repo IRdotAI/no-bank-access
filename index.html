@@ -42,8 +42,23 @@
     <!-- TRENDS TAB -->
     <main id="tab-trends" class="tab">
       <section class="panel">
-        <div class="panel-head"><h2>Spending by category</h2></div>
         <div class="month-switch" id="monthSwitch"></div>
+        <div class="tsum" id="trendsSummary"></div>
+
+        <div class="seg" id="dirSegTrends">
+          <button type="button" data-dir="out" class="active">Money out</button>
+          <button type="button" data-dir="in">Money in</button>
+        </div>
+        <div class="trends-filters">
+          <select id="trendsCard" aria-label="Filter by card"></select>
+          <select id="trendsSort" aria-label="Sort by">
+            <option value="amount">Highest first</option>
+            <option value="amount_asc">Lowest first</option>
+            <option value="count">Most frequent</option>
+            <option value="name">A–Z</option>
+          </select>
+        </div>
+
         <div id="trendsTotal" class="trends-total"></div>
         <div id="categoryBars" class="cat-bars"></div>
       </section>

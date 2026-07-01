@@ -351,6 +351,12 @@ function renderPayments() {
 
 /* ---------- Trends ---------- */
 let trendMonth = new Date(); trendMonth.setDate(1);
+let trendsDir = "out";
+let trendsCardId = "";     // "" = all cards
+let trendsSort = "amount";
+let expandedCat = null;    // which category is expanded to show its transactions
+
+function money2(n) { return `£${money(n).w}.${money(n).dec}`; }
 
 function renderTrends() {
   const y = trendMonth.getFullYear(), m = trendMonth.getMonth();
@@ -358,30 +364,69 @@ function renderTrends() {
     <button id="prevM">‹</button>
     <div class="label">${trendMonth.toLocaleDateString([], { month: "long", year: "numeric" })}</div>
     <button id="nextM">›</button>`;
-  $("#prevM").onclick = () => { trendMonth.setMonth(m - 1); renderTrends(); };
-  $("#nextM").onclick = () => { trendMonth.setMonth(m + 1); renderTrends(); };
+  $("#prevM").onclick = () => { trendMonth.setMonth(m - 1); expandedCat = null; renderTrends(); };
+  $("#nextM").onclick = () => { trendMonth.setMonth(m + 1); expandedCat = null; renderTrends(); };
 
-  const inMonth = state.tx.filter(t => {
+  // card filter options (preserve current selection)
+  const cardSel = $("#trendsCard");
+  cardSel.innerHTML = `<option value="">All cards</option>` +
+    state.cards.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  if (state.cards.some(c => c.id === trendsCardId)) cardSel.value = trendsCardId; else trendsCardId = "";
+  $("#trendsSort").value = trendsSort;
+  $$("#dirSegTrends button").forEach(b => b.classList.toggle("active", b.dataset.dir === trendsDir));
+
+  // transactions for the month (respecting the card filter)
+  const monthTx = state.tx.filter(t => {
     const d = new Date(t.when);
-    return d.getFullYear() === y && d.getMonth() === m && t.dir === "out";
+    return d.getFullYear() === y && d.getMonth() === m && (!trendsCardId || t.cardId === trendsCardId);
   });
-  const totalOut = inMonth.reduce((s, t) => s + t.amount, 0);
-  $("#trendsTotal").innerHTML = `${moneyHTML(totalOut)}<small>spent this month</small>`;
+  const sumOut = monthTx.filter(t => t.dir === "out").reduce((s, t) => s + t.amount, 0);
+  const sumIn = monthTx.filter(t => t.dir === "in").reduce((s, t) => s + t.amount, 0);
+  const net = sumIn - sumOut;
+
+  $("#trendsSummary").innerHTML = `
+    <div class="tsum-item"><small>In</small><b class="pos">${money2(sumIn)}</b></div>
+    <div class="tsum-item"><small>Out</small><b>${money2(sumOut)}</b></div>
+    <div class="tsum-item"><small>Net</small><b class="${net < 0 ? "neg" : "pos"}">${net < 0 ? "-" : "+"}${money2(Math.abs(net))}</b></div>`;
+
+  // directional breakdown by category
+  const dirTx = monthTx.filter(t => t.dir === trendsDir);
+  const total = dirTx.reduce((s, t) => s + t.amount, 0);
+  $("#trendsTotal").innerHTML = `${moneyHTML(total)}<small>total ${trendsDir === "out" ? "spent" : "received"} this month</small>`;
 
   const byCat = {};
-  inMonth.forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
-  const rows = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const max = rows.length ? rows[0][1] : 1;
+  dirTx.forEach(t => {
+    (byCat[t.category] = byCat[t.category] || { amount: 0, count: 0, txs: [] });
+    byCat[t.category].amount += t.amount;
+    byCat[t.category].count += 1;
+    byCat[t.category].txs.push(t);
+  });
+  let rows = Object.entries(byCat);
+  rows.sort((a, b) => {
+    if (trendsSort === "amount") return b[1].amount - a[1].amount;
+    if (trendsSort === "amount_asc") return a[1].amount - b[1].amount;
+    if (trendsSort === "count") return b[1].count - a[1].count;
+    if (trendsSort === "name") return cat(a[0]).name.localeCompare(cat(b[0]).name);
+    return 0;
+  });
+  const max = rows.reduce((mx, [, v]) => Math.max(mx, v.amount), 1);
 
   $("#categoryBars").innerHTML = rows.length
-    ? rows.map(([id, amt]) => {
+    ? rows.map(([id, v]) => {
         const c = cat(id);
-        return `<div class="cat-row">
-          <div class="cat-top"><span>${c.emoji} ${c.name}</span><span>£${money(amt).w}.${money(amt).dec}</span></div>
-          <div class="bar"><span style="width:${Math.max(6, (amt / max) * 100)}%;background:${c.color}"></span></div>
+        const pct = total ? Math.round((v.amount / total) * 100) : 0;
+        const open = expandedCat === id;
+        const txs = [...v.txs].sort((a, b) => new Date(b.when) - new Date(a.when));
+        return `<div class="cat-row ${open ? "open" : ""}" data-cat="${id}">
+          <div class="cat-top">
+            <span class="cat-name">${c.emoji} ${c.name} <span class="cat-count">${v.count}</span></span>
+            <span class="cat-amt">${money2(v.amount)} <span class="cat-pct">${pct}%</span></span>
+          </div>
+          <div class="bar"><span style="width:${Math.max(5, (v.amount / max) * 100)}%;background:${c.color}"></span></div>
+          ${open ? `<div class="cat-txs">${groupedTxHTML(txs)}</div>` : ""}
         </div>`;
       }).join("")
-    : `<div class="empty-note">Nothing spent in this month.</div>`;
+    : `<div class="empty-note">No ${trendsDir === "out" ? "spending" : "income"} in this month${trendsCardId ? " for this card" : ""}.</div>`;
 }
 
 function esc(s) {
@@ -389,6 +434,18 @@ function esc(s) {
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
   ));
 }
+
+/* ---------- Trends controls (bound once) ---------- */
+$$("#dirSegTrends button").forEach(b => b.onclick = () => { trendsDir = b.dataset.dir; expandedCat = null; renderTrends(); });
+$("#trendsCard").onchange = (e) => { trendsCardId = e.target.value; expandedCat = null; renderTrends(); };
+$("#trendsSort").onchange = (e) => { trendsSort = e.target.value; renderTrends(); };
+$("#categoryBars").addEventListener("click", (e) => {
+  if (e.target.closest("[data-tx]")) return;          // let taps on a listed tx open it
+  const row = e.target.closest(".cat-row");
+  if (!row) return;
+  expandedCat = expandedCat === row.dataset.cat ? null : row.dataset.cat;
+  renderTrends();
+});
 
 /* ---------- Tab navigation ---------- */
 $$(".tab-btn").forEach(btn => {

@@ -366,7 +366,10 @@ function donutHTML(rows, total, label) {
     segs = rows.map(([id, v]) => {
       const c = cat(id);
       const len = (v.amount / total) * C;
-      const s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c.color}" stroke-width="${w}" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}"/>`;
+      const sel = expandedCat === id;
+      const sw = sel ? w + 5 : w;
+      const op = expandedCat && !sel ? 0.4 : 1;
+      const s = `<circle data-cat="${id}" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c.color}" stroke-width="${sw}" opacity="${op}" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}"/>`;
       off += len;
       return s;
     }).join("");
@@ -469,6 +472,15 @@ $("#categoryBars").addEventListener("click", (e) => {
   if (!row) return;
   expandedCat = expandedCat === row.dataset.cat ? null : row.dataset.cat;
   renderTrends();
+});
+$("#trendsDonut").addEventListener("click", (e) => {
+  const seg = e.target.closest("[data-cat]");
+  if (!seg) return;
+  const id = seg.dataset.cat;
+  expandedCat = expandedCat === id ? null : id;
+  renderTrends();
+  const row = document.querySelector(`.cat-row[data-cat="${id}"]`);
+  if (row) row.scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
 
 /* ---------- Tab navigation ---------- */

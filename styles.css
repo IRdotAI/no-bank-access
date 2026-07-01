@@ -90,6 +90,8 @@ body {
   background: color-mix(in srgb, var(--tc) 20%, transparent);
   color: var(--tc);
 }
+.card .logo { display: inline-flex; align-items: center; color: var(--tc); flex-shrink: 0; }
+.card .logo svg { display: block; }
 .card .brand {
   font-size: 19px; font-weight: 800; letter-spacing: .3px; flex: 1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

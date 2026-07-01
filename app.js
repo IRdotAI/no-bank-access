@@ -152,7 +152,37 @@ function load() {
   return { cards: [], tx: [] };
 }
 if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
+if (!Array.isArray(state.recurring)) state.recurring = [];
 function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
+
+/* ---------- Recurring payments ---------- */
+const FREQ_LABEL = { weekly: "Weekly", biweekly: "Every 2 weeks", monthly: "Monthly" };
+function addInterval(iso, freq) {
+  const d = new Date(iso);
+  if (freq === "weekly") d.setDate(d.getDate() + 7);
+  else if (freq === "biweekly") d.setDate(d.getDate() + 14);
+  else d.setMonth(d.getMonth() + 1);
+  return d.toISOString();
+}
+/* Auto-log any recurring payments that are now due (catching up misses). */
+function processRecurring() {
+  const now = Date.now();
+  let count = 0;
+  state.recurring.forEach(r => {
+    if (!state.cards.some(c => c.id === r.cardId)) return;   // card deleted → skip
+    let guard = 0;
+    while (new Date(r.next).getTime() <= now && guard < 500) {
+      state.tx.push({
+        id: uid(), dir: r.dir, amount: r.amount, where: r.where,
+        cardId: r.cardId, when: r.next, category: r.category, note: "recurring",
+      });
+      r.next = addInterval(r.next, r.freq);
+      count++; guard++;
+    }
+  });
+  if (count) save();
+  return count;
+}
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 /* ---------- Helpers ---------- */
@@ -357,7 +387,35 @@ function renderPayments() {
   $("#allTx").innerHTML = all.length
     ? groupedTxHTML(all)
     : `<div class="empty-note">${q ? "No transactions match “" + esc(txQuery) + "”." : "No transactions yet."}</div>`;
+
+  renderRecurring();
 }
+
+function renderRecurring() {
+  const panel = $("#recurringPanel");
+  panel.hidden = state.recurring.length === 0;
+  if (!state.recurring.length) return;
+  $("#recurringList").innerHTML = state.recurring.map(r => {
+    const c = cat(r.category);
+    const card = state.cards.find(x => x.id === r.cardId);
+    const amt = (r.dir === "in" ? "+" : "-") + money2(r.amount);
+    return `<div class="tx">
+      <div class="tx-ico" style="background:${c.color}22">${c.emoji}</div>
+      <div class="tx-main">
+        <div class="tx-where">${esc(r.where)}</div>
+        <div class="tx-sub">${FREQ_LABEL[r.freq]} · next ${dayLabel(r.next)} · ${card ? esc(card.name) : "—"}</div>
+      </div>
+      <div class="tx-amt ${r.dir === "in" ? "in" : ""}">${amt}</div>
+      <button class="sc-del" data-recdel="${r.id}" aria-label="Cancel recurring">×</button>
+    </div>`;
+  }).join("");
+}
+$("#recurringList").addEventListener("click", (e) => {
+  const del = e.target.closest("[data-recdel]");
+  if (!del) return;
+  state.recurring = state.recurring.filter(r => r.id !== del.dataset.recdel);
+  save(); render(); toast("Recurring cancelled");
+});
 
 /* ---------- Trends ---------- */
 let trendMonth = new Date(); trendMonth.setDate(1);
@@ -765,7 +823,16 @@ txForm.onsubmit = (e) => {
     toast("Payment updated");
   } else {
     state.tx.push({ id: uid(), ...data });
-    toast("Payment saved");
+    const freq = txForm.repeat.value;
+    if (freq) {
+      state.recurring.push({
+        id: uid(), where: data.where, amount: data.amount, category: data.category,
+        dir: data.dir, cardId: data.cardId, freq, next: addInterval(data.when, freq),
+      });
+      toast(`Saved · repeats ${FREQ_LABEL[freq].toLowerCase()}`);
+    } else {
+      toast("Payment saved");
+    }
   }
   txModal.hidden = true;
   render();
@@ -905,6 +972,7 @@ $("#importFile").onchange = (e) => {
       if (!confirm("Replace all current data with this backup?")) return;
       state = data;
       if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
+      if (!Array.isArray(state.recurring)) state.recurring = [];
       render();
       toast("Backup imported");
     } catch (err) { toast("Could not read that file"); }
@@ -914,7 +982,7 @@ $("#importFile").onchange = (e) => {
 };
 $("#wipeBtn").onclick = () => {
   if (!confirm("Erase ALL cards and transactions? This cannot be undone.")) return;
-  state = { cards: [], tx: [], shortcuts: [] };
+  state = { cards: [], tx: [], shortcuts: [], recurring: [] };
   render();
   toast("Everything erased");
 };
@@ -1007,8 +1075,10 @@ $("#removePinBtn").onclick = () => {
 
 /* ---------- Init ---------- */
 clearOldDemo();
+const recLogged = processRecurring();
 render();
 if (pinIsSet()) showLock("unlock");
+if (recLogged) toast(`Logged ${recLogged} recurring payment${recLogged > 1 ? "s" : ""}`);
 
 /* ---------- Service worker ---------- */
 if ("serviceWorker" in navigator) {

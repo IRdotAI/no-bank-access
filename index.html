@@ -71,6 +71,11 @@
         <div id="paymentsCards" class="pay-cards"></div>
         <button class="wide-btn" id="addCardBtn">+ Add a card</button>
       </section>
+      <section class="panel" id="recurringPanel" hidden>
+        <div class="panel-head"><h2>Recurring</h2></div>
+        <div id="recurringList" class="activity"></div>
+      </section>
+
       <section class="panel">
         <div class="panel-head"><h2>All transactions</h2></div>
         <input id="txSearch" class="tx-search" type="search" placeholder="Search name, category, card or note…" />
@@ -220,6 +225,14 @@
         <label>Category
           <div class="cat-grid" id="catGrid"></div>
           <input type="hidden" name="category" required />
+        </label>
+        <label>Repeat
+          <select name="repeat">
+            <option value="">Don't repeat</option>
+            <option value="weekly">Every week</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="monthly">Every month</option>
+          </select>
         </label>
         <label>Note <small>(optional)</small>
           <input name="note" maxlength="80" placeholder="Anything to remember" />

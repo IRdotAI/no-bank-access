@@ -113,6 +113,13 @@ body {
 .card .meta span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card .type-tag { opacity: .85; flex-shrink: 0; }
 
+.card.selected { box-shadow: 0 0 0 3px #5aa2ff, 0 10px 26px rgba(0,0,0,.45); }
+.cards-hint {
+  color: var(--muted); font-size: 12.5px; text-align: center;
+  margin: -8px 2px 18px; line-height: 1.4;
+}
+.cards-hint:empty { display: none; }
+
 .empty-cards {
   border: 1.5px dashed var(--line);
   border-radius: var(--radius);

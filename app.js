@@ -133,10 +133,14 @@ const BANK_LOGOS = {
   "The Co-operative Bank": "<circle cx='12' cy='7.6' r='3.7'/><circle cx='16.4' cy='12' r='3.7'/><circle cx='12' cy='16.4' r='3.7'/><circle cx='7.6' cy='12' r='3.7'/>",
   "Metro Bank": "<path fill='none' stroke='currentColor' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' d='M5 19V6l7 8 7-8v13'/>",
   "Cash": "<rect x='3' y='7' width='18' height='10' rx='2' fill='none' stroke='currentColor' stroke-width='2'/><circle cx='12' cy='12' r='2.4' fill='none' stroke='currentColor' stroke-width='2'/>",
+  "Capital One": "<path d='M4.3 16.4C10 18.2 16.2 15 20.6 7.2 17.2 16.1 10.8 19.8 4.3 16.4Z'/>",
+  "Virgin Money": "<circle cx='12' cy='10.3' r='7.3'/><path d='M5.6 19.6c3.9 2.4 8.9 2.4 12.8 0' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/>",
+  "TSB": "<circle cx='9.3' cy='12' r='5'/><circle cx='15.2' cy='12' r='3.9'/>",
 };
 
 /* ---------- State ---------- */
 let state = load();
+let selectedCardId = null;   // which card's activity is shown on Home (null = all)
 
 function load() {
   try {
@@ -214,10 +218,13 @@ function render() {
 
 function renderCards() {
   const el = $("#cardsList");
+  const hint = $("#cardsHint");
   if (!state.cards.length) {
     el.innerHTML = `<div class="empty-cards">No cards yet.<br>Tap <b>+</b> above to add your first card.</div>`;
+    if (hint) hint.textContent = "";
     return;
   }
+  if (hint) hint.textContent = "Tap a card to see its activity. Manage cards in the Payments tab.";
   const wifi = `<svg class="wifi" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8a6 6 0 0 1 0 8"/><path d="M11.5 5.5a10 10 0 0 1 0 13"/><path d="M14.5 3a14 14 0 0 1 0 18"/></svg>`;
   el.innerHTML = state.cards.map(c => {
     const bal = cardBalance(c);
@@ -225,7 +232,8 @@ function renderCards() {
     const badge = logo
       ? `<span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">${logo}</svg></span>`
       : `<span class="mono">${esc(initials(c.name))}</span>`;
-    return `<div class="card" style="--bg:${c.color};--tc:${textOn(c.color)}" data-card="${c.id}">
+    const sel = c.id === selectedCardId ? " selected" : "";
+    return `<div class="card${sel}" style="--bg:${c.color};--tc:${textOn(c.color)}" data-card="${c.id}">
       <div class="card-head">
         ${badge}
         <span class="brand">${esc(c.name)}</span>
@@ -262,10 +270,22 @@ function sortedTx() {
 }
 
 function renderActivity() {
-  const list = sortedTx().slice(0, 8);
-  $("#activityList").innerHTML = list.length
-    ? list.map(txRowHTML).join("")
-    : `<div class="empty-note">No transactions yet. Tap the red <b>+</b> to log one.</div>`;
+  // drop selection if that card was deleted
+  const sel = selectedCardId ? state.cards.find(c => c.id === selectedCardId) : null;
+  if (selectedCardId && !sel) selectedCardId = null;
+
+  let list = sortedTx();
+  if (sel) list = list.filter(t => t.cardId === sel.id);
+  const shown = list.slice(0, 8);
+
+  $("#activityTitle").textContent = sel ? `${sel.name} · activity` : "Activity";
+  $("#activityAll").textContent = sel ? "All cards" : "See all";
+
+  $("#activityList").innerHTML = shown.length
+    ? shown.map(txRowHTML).join("")
+    : `<div class="empty-note">${sel
+        ? "No transactions for " + esc(sel.name) + " yet. Tap the red + to log one."
+        : "No transactions yet. Tap the red <b>+</b> to log one."}</div>`;
 }
 
 function renderPayments() {
@@ -337,7 +357,10 @@ $$(".tab-btn").forEach(btn => {
     $("#tab-" + btn.dataset.tab).classList.add("active");
   };
 });
-$("#seeAll").onclick = () => $('.tab-btn[data-tab="payments"]').click();
+$("#activityAll").onclick = () => {
+  if (selectedCardId) { selectedCardId = null; render(); }   // clear the card filter
+  else $('.tab-btn[data-tab="payments"]').click();           // otherwise show all transactions
+};
 
 /* ---------- Card modal ---------- */
 const cardModal = $("#cardModal");
@@ -539,8 +562,16 @@ $("#addTxTop").onclick = () => openTxModal();
 document.body.addEventListener("click", (e) => {
   const cardEl = e.target.closest("[data-card]");
   if (cardEl) {
-    const c = state.cards.find(x => x.id === cardEl.dataset.card);
-    if (c) openCardModal(c);
+    const id = cardEl.dataset.card;
+    if (cardEl.closest("#cardsList")) {
+      // Home: tap selects the card to show its activity (tap again to clear)
+      selectedCardId = selectedCardId === id ? null : id;
+      render();
+    } else {
+      // Payments tab: tap opens the card editor
+      const c = state.cards.find(x => x.id === id);
+      if (c) openCardModal(c);
+    }
     return;
   }
   const txEl = e.target.closest("[data-tx]");

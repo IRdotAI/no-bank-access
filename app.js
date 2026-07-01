@@ -274,7 +274,7 @@ function txRowHTML(t) {
     <div class="tx-ico" style="background:${c.color}22">${c.emoji}</div>
     <div class="tx-main">
       <div class="tx-where">${esc(t.where)}</div>
-      <div class="tx-sub">${c.name} · ${card ? esc(card.name) : "—"} · ${fmtDate(t.when)}</div>
+      <div class="tx-sub">${c.name} · ${card ? esc(card.name) : "—"} · ${fmtTime(t.when)}</div>
     </div>
     <div class="tx-amt ${t.dir === "in" ? "in" : ""}">${amt}</div>
   </div>`;
@@ -282,6 +282,33 @@ function txRowHTML(t) {
 
 function sortedTx() {
   return [...state.tx].sort((a, b) => new Date(b.when) - new Date(a.when));
+}
+
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+/* Heading for a day group: Today / Yesterday / e.g. "Mon 30 Jun". */
+function dayLabel(iso) {
+  const d = new Date(iso), now = new Date();
+  const startOf = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((startOf(now) - startOf(d)) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) });
+}
+
+/* Render a (date-sorted) transaction list grouped under day headings. */
+function groupedTxHTML(list) {
+  let html = "", lastKey = null;
+  for (const t of list) {
+    const d = new Date(t.when);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (key !== lastKey) { html += `<div class="tx-day">${dayLabel(t.when)}</div>`; lastKey = key; }
+    html += txRowHTML(t);
+  }
+  return html;
 }
 
 function renderActivity() {
@@ -297,7 +324,7 @@ function renderActivity() {
   $("#activityAll").textContent = sel ? "All cards" : "See all";
 
   $("#activityList").innerHTML = shown.length
-    ? shown.map(txRowHTML).join("")
+    ? groupedTxHTML(shown)
     : `<div class="empty-note">${sel
         ? "No transactions for " + esc(sel.name) + " yet. Tap the red + to log one."
         : "No transactions yet. Tap the red <b>+</b> to log one."}</div>`;
@@ -318,7 +345,7 @@ function renderPayments() {
     : `<div class="empty-note">No cards yet.</div>`;
   const all = sortedTx();
   $("#allTx").innerHTML = all.length
-    ? all.map(txRowHTML).join("")
+    ? groupedTxHTML(all)
     : `<div class="empty-note">No transactions yet.</div>`;
 }
 

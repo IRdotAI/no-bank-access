@@ -142,7 +142,7 @@ def autocrop(w, h, src):
     return cw, ch, out
 
 
-w, h, px = read_png("logo.PNG")
+w, h, px = read_png("logo-new-cut.png")
 print(f"logo {w}x{h}")
 w, h, px = autocrop(w, h, px)
 print(f"cropped {w}x{h}")

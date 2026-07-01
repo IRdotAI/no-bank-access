@@ -73,6 +73,7 @@
       </section>
       <section class="panel">
         <div class="panel-head"><h2>All transactions</h2></div>
+        <input id="txSearch" class="tx-search" type="search" placeholder="Search name, category, card or note…" />
         <div id="allTx" class="activity"></div>
       </section>
     </main>
@@ -166,6 +167,13 @@
         <button class="icon-btn" data-close aria-label="Close">×</button>
       </div>
       <form id="txForm">
+        <div class="shortcuts-row">
+          <button type="button" class="chip-btn" id="shortcutsToggle">⚡ Shortcuts</button>
+        </div>
+        <div id="shortcutsPanel" class="shortcuts-panel" hidden>
+          <div id="shortcutsList" class="shortcut-chips"></div>
+          <button type="button" class="wide-btn ghost" id="saveShortcut">＋ Save current entry as a shortcut</button>
+        </div>
         <div class="seg" id="dirSeg">
           <button type="button" data-dir="out" class="active">Money out</button>
           <button type="button" data-dir="in">Money in</button>

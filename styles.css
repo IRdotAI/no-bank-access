@@ -338,6 +338,35 @@ form input:focus, form select:focus { outline: none; border-color: var(--blue); 
 .sheet-actions { margin-top: 6px; }
 .sheet-actions .wide-btn { margin-top: 8px; }
 
+/* Shortcuts in the payment sheet */
+.shortcuts-row { margin-bottom: 14px; }
+.chip-btn {
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  border-radius: 999px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.chip-btn.on { border-color: var(--blue); color: #fff; }
+.shortcuts-panel { margin-bottom: 16px; }
+.shortcut-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.shortcut-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 999px; padding: 7px 8px 7px 12px; font-size: 13px; cursor: pointer;
+}
+.shortcut-chip .sc-amt { color: var(--muted); }
+.shortcut-chip .sc-amt.in { color: var(--green); }
+.shortcut-chip .sc-del {
+  border: none; background: none; color: var(--muted);
+  font-size: 16px; line-height: 1; cursor: pointer; padding: 0 3px; margin-left: 1px;
+}
+.shortcut-empty { color: var(--muted); font-size: 13px; padding: 2px 0 8px; }
+
+.tx-search {
+  width: 100%; padding: 11px 14px; margin-bottom: 12px;
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 12px; color: var(--text); font-size: 15px;
+}
+.tx-search:focus { outline: none; border-color: var(--blue); }
+
 .seg { display: flex; background: var(--panel); border-radius: 12px; padding: 4px; margin-bottom: 16px; }
 .seg button { flex: 1; border: none; background: none; color: var(--muted); padding: 10px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .seg button.active { background: var(--panel-2); color: var(--text); }

@@ -151,6 +151,7 @@ function load() {
   } catch (e) { /* fall through */ }
   return { cards: [], tx: [] };
 }
+if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
 function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
@@ -343,10 +344,19 @@ function renderPayments() {
         <div class="pc-bal">${moneyHTML(cardBalance(c))}</div>
       </div>`).join("")
     : `<div class="empty-note">No cards yet.</div>`;
-  const all = sortedTx();
+  const q = txQuery.trim().toLowerCase();
+  let all = sortedTx();
+  if (q) {
+    all = all.filter(t => {
+      const card = state.cards.find(c => c.id === t.cardId);
+      const hay = [t.where, t.note, cat(t.category).name, card ? card.name : "", t.amount.toFixed(2)]
+        .join(" ").toLowerCase();
+      return hay.includes(q);
+    });
+  }
   $("#allTx").innerHTML = all.length
     ? groupedTxHTML(all)
-    : `<div class="empty-note">No transactions yet.</div>`;
+    : `<div class="empty-note">${q ? "No transactions match “" + esc(txQuery) + "”." : "No transactions yet."}</div>`;
 }
 
 /* ---------- Trends ---------- */
@@ -482,6 +492,10 @@ $("#trendsDonut").addEventListener("click", (e) => {
   const row = document.querySelector(`.cat-row[data-cat="${id}"]`);
   if (row) row.scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
+
+/* ---------- Transaction search (Payments tab) ---------- */
+let txQuery = "";
+$("#txSearch").addEventListener("input", (e) => { txQuery = e.target.value; renderPayments(); });
 
 /* ---------- Tab navigation ---------- */
 $$(".tab-btn").forEach(btn => {
@@ -657,8 +671,77 @@ function openTxModal(tx = null) {
     txForm.when.value = localNowValue();
   }
   buildCatGrid();
+  $("#shortcutsPanel").hidden = true;
+  $("#shortcutsToggle").classList.remove("on");
+  renderShortcuts();
   txModal.hidden = false;
 }
+
+/* ---------- Shortcuts (saved repeatable payments) ---------- */
+function renderShortcuts() {
+  const el = $("#shortcutsList");
+  if (!state.shortcuts.length) {
+    el.innerHTML = `<div class="shortcut-empty">No shortcuts yet. Fill in a payment below, then tap “Save current entry as a shortcut”.</div>`;
+    return;
+  }
+  el.innerHTML = state.shortcuts.map(s => {
+    const c = cat(s.category);
+    const amt = (s.dir === "in" ? "+" : "-") + money2(s.amount);
+    return `<span class="shortcut-chip" data-sc="${s.id}">
+      <span class="sc-emoji">${c.emoji}</span>
+      <span class="sc-name">${esc(s.where)}</span>
+      <span class="sc-amt ${s.dir === "in" ? "in" : ""}">${amt}</span>
+      <button type="button" class="sc-del" data-del="${s.id}" aria-label="Delete shortcut">×</button>
+    </span>`;
+  }).join("");
+}
+
+function applyShortcut(s) {
+  setDir(s.dir);
+  txForm.amount.value = s.amount;
+  txForm.where.value = s.where;
+  if (state.cards.some(c => c.id === s.cardId)) txForm.cardId.value = s.cardId;
+  txCat = s.category;
+  txForm.category.value = s.category;
+  buildCatGrid();
+  toast(`Filled “${s.where}”`);
+}
+
+$("#shortcutsToggle").onclick = () => {
+  const p = $("#shortcutsPanel");
+  p.hidden = !p.hidden;
+  $("#shortcutsToggle").classList.toggle("on", !p.hidden);
+};
+
+$("#shortcutsList").addEventListener("click", (e) => {
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    state.shortcuts = state.shortcuts.filter(s => s.id !== del.dataset.del);
+    save(); renderShortcuts();
+    return;
+  }
+  const chip = e.target.closest("[data-sc]");
+  if (chip) {
+    const s = state.shortcuts.find(x => x.id === chip.dataset.sc);
+    if (s) applyShortcut(s);
+  }
+});
+
+$("#saveShortcut").onclick = () => {
+  const where = txForm.where.value.trim();
+  const amount = Math.abs(parseFloat(txForm.amount.value) || 0);
+  const category = txForm.category.value;
+  if (!where || amount <= 0 || !category) {
+    toast("Add a name, amount and category first");
+    return;
+  }
+  state.shortcuts.push({
+    id: uid(), where, amount, category, dir: txDir, cardId: txForm.cardId.value,
+  });
+  save();
+  renderShortcuts();
+  toast("Shortcut saved");
+};
 
 txForm.onsubmit = (e) => {
   e.preventDefault();
@@ -748,6 +831,7 @@ $("#importFile").onchange = (e) => {
       if (!Array.isArray(data.cards) || !Array.isArray(data.tx)) throw new Error("bad file");
       if (!confirm("Replace all current data with this backup?")) return;
       state = data;
+      if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
       render();
       toast("Backup imported");
     } catch (err) { toast("Could not read that file"); }
@@ -757,7 +841,7 @@ $("#importFile").onchange = (e) => {
 };
 $("#wipeBtn").onclick = () => {
   if (!confirm("Erase ALL cards and transactions? This cannot be undone.")) return;
-  state = { cards: [], tx: [] };
+  state = { cards: [], tx: [], shortcuts: [] };
   render();
   toast("Everything erased");
 };

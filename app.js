@@ -840,20 +840,38 @@ cardsEl.addEventListener("pointermove", (e) => {
 function endCardDrag(e) {
   if (!cardDrag) return;
   const d = cardDrag; cardDrag = null;
-  d.card.classList.remove("dragging");
-  d.card.style.transform = "";
-  if (!d.moved) return;                             // a tap → let the click handler select
+  if (!d.moved) { d.card.classList.remove("dragging"); d.card.style.transform = ""; return; }
+
   const dy = (e.clientY ?? d.startY) - d.startY;
-  let target = Math.max(0, Math.min(state.cards.length - 1, d.index + Math.round(dy / DRAG_SLOT)));
+  const target = Math.max(0, Math.min(state.cards.length - 1, d.index + Math.round(dy / DRAG_SLOT)));
   suppressCardClick = true;
   setTimeout(() => { suppressCardClick = false; }, 60);
+
+  // FLIP: measure where every card is now (dragged card still lifted & collapsed)
+  const nodes = [...cardsEl.querySelectorAll(".card")];
+  const firstTop = new Map(nodes.map(n => [n, n.getBoundingClientRect().top]));
+
+  // apply the new order (state + DOM) and drop the drag styling
   if (target !== d.index) {
     const [moved] = state.cards.splice(d.index, 1);
     state.cards.splice(target, 0, moved);
     save();
-    render();
+    state.cards.forEach(c => cardsEl.appendChild(nodes.find(n => n.dataset.card === c.id)));
     toast("Cards reordered");
   }
+  d.card.classList.remove("dragging");
+  d.card.style.transform = "";
+
+  // FLIP: from old positions, animate every card to its new resting place
+  nodes.forEach(n => {
+    const delta = firstTop.get(n) - n.getBoundingClientRect().top;
+    if (delta) { n.style.transition = "none"; n.style.transform = `translateY(${delta}px)`; }
+  });
+  requestAnimationFrame(() => nodes.forEach(n => {
+    n.style.transition = "transform .28s cubic-bezier(.2,.8,.2,1)";
+    n.style.transform = "";
+  }));
+  setTimeout(() => nodes.forEach(n => { n.style.transition = ""; n.style.transform = ""; }), 340);
 }
 cardsEl.addEventListener("pointerup", endCardDrag);
 cardsEl.addEventListener("pointercancel", endCardDrag);

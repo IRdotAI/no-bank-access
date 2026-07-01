@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#10141f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="No Bank Access" />
+  <title>No Bank Access — Manual Transaction Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top bar -->
+    <header class="topbar">
+      <button class="avatar" id="avatarBtn" aria-label="Profile">
+        <span id="avatarInitials">NB</span>
+      </button>
+      <div class="topbar-title">
+        <strong>No Bank Access</strong>
+        <small>Manual tracker</small>
+      </div>
+      <button class="icon-btn" id="addCardTop" aria-label="Add card">+</button>
+    </header>
+
+    <!-- HOME TAB -->
+    <main id="tab-home" class="tab active">
+      <section class="cards" id="cardsList"></section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Activity</h2>
+          <button class="link" id="seeAll">See all</button>
+        </div>
+        <div id="activityList" class="activity"></div>
+      </section>
+    </main>
+
+    <!-- TRENDS TAB -->
+    <main id="tab-trends" class="tab">
+      <section class="panel">
+        <div class="panel-head"><h2>Spending by category</h2></div>
+        <div class="month-switch" id="monthSwitch"></div>
+        <div id="trendsTotal" class="trends-total"></div>
+        <div id="categoryBars" class="cat-bars"></div>
+      </section>
+    </main>
+
+    <!-- PAYMENTS TAB -->
+    <main id="tab-payments" class="tab">
+      <section class="panel">
+        <div class="panel-head"><h2>Your cards</h2></div>
+        <div id="paymentsCards" class="pay-cards"></div>
+        <button class="wide-btn" id="addCardBtn">+ Add a card</button>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>All transactions</h2></div>
+        <div id="allTx" class="activity"></div>
+      </section>
+    </main>
+
+    <!-- HELP TAB -->
+    <main id="tab-help" class="tab">
+      <section class="panel help">
+        <div class="panel-head"><h2>How it works</h2></div>
+        <ol>
+          <li><strong>Add your cards</strong> — tap <b>+</b> and give each card a name, type and starting balance.</li>
+          <li><strong>Log a payment</strong> — tap the big <b>+</b> button, enter the amount, where and when.</li>
+          <li><strong>Pick a category</strong> — shopping, transfers, entertainment, charity and more.</li>
+          <li><strong>Watch your balances</strong> — every entry updates the card and your Trends.</li>
+        </ol>
+        <div class="panel-head"><h2>Your data</h2></div>
+        <p class="muted">Everything is stored only on this device (offline). Nothing is sent anywhere — there really is no bank access.</p>
+        <button class="wide-btn ghost" id="exportBtn">Export my data (backup)</button>
+        <button class="wide-btn ghost" id="importBtn">Import a backup</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+        <button class="wide-btn danger" id="wipeBtn">Erase everything</button>
+      </section>
+    </main>
+
+    <!-- Floating add-transaction button -->
+    <button class="fab" id="fab" aria-label="Add transaction">+</button>
+
+    <!-- Bottom nav -->
+    <nav class="tabbar">
+      <button class="tab-btn active" data-tab="home">
+        <span class="ico">🏠</span><span>Home</span>
+      </button>
+      <button class="tab-btn" data-tab="trends">
+        <span class="ico">📊</span><span>Trends</span>
+      </button>
+      <button class="tab-btn" data-tab="payments">
+        <span class="ico">↔</span><span>Payments</span>
+      </button>
+      <button class="tab-btn" data-tab="help">
+        <span class="ico">❔</span><span>Help</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== Card modal ===== -->
+  <div class="modal" id="cardModal" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 id="cardModalTitle">Add a card</h3>
+        <button class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <form id="cardForm">
+        <label>Card name
+          <input name="name" required maxlength="24" placeholder="e.g. HSBC, monzo, Cash" />
+        </label>
+        <label>Type
+          <select name="type">
+            <option value="Current">Current account</option>
+            <option value="Savings">Savings</option>
+            <option value="Credit">Credit card</option>
+            <option value="Cash">Cash</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label>Colour
+          <div class="swatches" id="swatches"></div>
+        </label>
+        <label>Sort code / number <small>(optional)</small>
+          <input name="number" maxlength="24" placeholder="00-00-00 · 12345678" />
+        </label>
+        <label>Starting balance (£)
+          <input name="balance" type="number" step="0.01" inputmode="decimal" placeholder="0.00" />
+        </label>
+        <div class="sheet-actions">
+          <button type="button" class="wide-btn ghost" id="deleteCardBtn" hidden>Delete card</button>
+          <button type="submit" class="wide-btn">Save card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Transaction modal ===== -->
+  <div class="modal" id="txModal" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Log a payment</h3>
+        <button class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <form id="txForm">
+        <div class="seg" id="dirSeg">
+          <button type="button" data-dir="out" class="active">Money out</button>
+          <button type="button" data-dir="in">Money in</button>
+        </div>
+        <label>Amount (£)
+          <input name="amount" type="number" step="0.01" min="0" inputmode="decimal" required placeholder="0.00" />
+        </label>
+        <label>Where / who
+          <input name="where" required maxlength="40" placeholder="e.g. Tesco, Rent, Mum" />
+        </label>
+        <label>Card
+          <select name="cardId" id="txCardSelect" required></select>
+        </label>
+        <label>When
+          <input name="when" type="datetime-local" required />
+        </label>
+        <label>Category
+          <div class="cat-grid" id="catGrid"></div>
+          <input type="hidden" name="category" required />
+        </label>
+        <label>Note <small>(optional)</small>
+          <input name="note" maxlength="80" placeholder="Anything to remember" />
+        </label>
+        <div class="sheet-actions">
+          <button type="button" class="wide-btn ghost" id="deleteTxBtn" hidden>Delete</button>
+          <button type="submit" class="wide-btn">Save payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

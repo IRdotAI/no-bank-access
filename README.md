@@ -39,3 +39,9 @@ Then open <http://localhost:8080>.
 Plain HTML/CSS/JavaScript — no build step, no dependencies. Data is stored in
 `localStorage`. Icons are generated from `logo.PNG` by `make_icons.py`
 (standard-library Python only).
+
+Card brand marks come from [Simple Icons](https://simpleicons.org) (CC0);
+the Lloyds horse head is by Delapouite from
+[game-icons.net](https://game-icons.net) (CC BY 3.0). All bank names and logos
+are trademarks of their respective owners and are used here only to label a
+user's own manually-entered accounts.

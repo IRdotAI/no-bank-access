@@ -223,6 +223,23 @@ form input:focus, form select:focus { outline: none; border-color: var(--blue); 
 .seg button.active { background: var(--panel-2); color: var(--text); }
 .seg button[data-dir="in"].active { color: var(--green); }
 
+/* Bank picker */
+.bank-results {
+  max-height: 210px; overflow-y: auto; margin-bottom: 14px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+}
+.bank-results:empty { display: none; }
+.bank-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; cursor: pointer; border-top: 1px solid var(--line);
+}
+.bank-item:first-child { border-top: none; }
+.bank-item.active { background: var(--panel-2); }
+.bank-item .bdot { width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0; }
+.bank-item .bname { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+.bank-item .bkind { font-size: 11px; color: var(--muted); }
+.bank-empty { padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
+
 .swatches { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
 .swatches button { width: 34px; height: 34px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; }
 .swatches button.active { border-color: #fff; }

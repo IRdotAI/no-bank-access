@@ -110,8 +110,12 @@
         <button class="icon-btn" data-close aria-label="Close">×</button>
       </div>
       <form id="cardForm">
+        <label>Choose your bank or card
+          <input type="text" id="bankSearch" autocomplete="off" placeholder="Search e.g. Monzo, Barclays, Amex…" />
+        </label>
+        <div id="bankResults" class="bank-results"></div>
         <label>Card name
-          <input name="name" required maxlength="24" placeholder="e.g. HSBC, monzo, Cash" />
+          <input name="name" required maxlength="24" placeholder="Pick above, or type your own" />
         </label>
         <label>Type
           <select name="type">

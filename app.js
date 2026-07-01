@@ -18,6 +18,88 @@ const CATEGORIES = [
 ];
 const CARD_COLORS = ["#e8443b", "#c8102e", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#0ea5e9", "#334155"];
 
+/* UK banks, building societies, e-money/fintech, credit & store cards.
+   [name, kind, colour]. kind: bank | bs | fintech | credit | store.
+   Not exhaustive of the universe — but if yours is missing, just type its
+   name in the Card name box. */
+const BANK_KINDS = { bank: "Bank", bs: "Building society", fintech: "Fintech / e-money", credit: "Credit card", store: "Store / BNPL card" };
+const BANKS = [
+  // High-street & major banks
+  ["HSBC UK", "bank", "#db0011"], ["First Direct", "bank", "#303030"],
+  ["Barclays", "bank", "#00aeef"], ["Lloyds Bank", "bank", "#006a4d"],
+  ["Halifax", "bank", "#005eb8"], ["Bank of Scotland", "bank", "#002d62"],
+  ["NatWest", "bank", "#5a287d"], ["Royal Bank of Scotland", "bank", "#002d72"],
+  ["Ulster Bank", "bank", "#003087"], ["Santander UK", "bank", "#ec0000"],
+  ["TSB", "bank", "#00b0ca"], ["Metro Bank", "bank", "#dc0032"],
+  ["The Co-operative Bank", "bank", "#00b1eb"], ["Virgin Money", "bank", "#e10a0a"],
+  ["Clydesdale Bank", "bank", "#002d72"], ["Yorkshire Bank", "bank", "#002d72"],
+  ["Tesco Bank", "bank", "#00539f"], ["Sainsbury's Bank", "bank", "#f06c00"],
+  ["M&S Bank", "bank", "#00543c"], ["John Lewis Money", "bank", "#6d6e71"],
+  ["Post Office Money", "bank", "#c8102e"], ["Coutts", "bank", "#1a1a1a"],
+  ["Handelsbanken", "bank", "#005aa0"], ["Danske Bank", "bank", "#003755"],
+  ["Bank of Ireland UK", "bank", "#0b7d3e"], ["AIB (NI)", "bank", "#e4002b"],
+  ["Cater Allen", "bank", "#2d2a70"], ["C. Hoare & Co", "bank", "#1a1a1a"],
+  ["Weatherbys Bank", "bank", "#1a1a1a"], ["Reliance Bank", "bank", "#004b87"],
+  // Fintech / e-money / app banks
+  ["Monzo", "fintech", "#e8443b"], ["Starling Bank", "fintech", "#6935d3"],
+  ["Revolut", "fintech", "#0666eb"], ["Chase UK", "fintech", "#117aca"],
+  ["Monese", "fintech", "#00b2a9"], ["Wise", "fintech", "#163300"],
+  ["N26", "fintech", "#1a1a1a"], ["Curve", "fintech", "#1a1a1a"],
+  ["Zopa Bank", "fintech", "#ff5000"], ["Atom Bank", "fintech", "#16193f"],
+  ["Tandem Bank", "fintech", "#ff4d6d"], ["Kroo", "fintech", "#e6c700"],
+  ["Zempler Bank (Cashplus)", "fintech", "#7a2682"], ["Pockit", "fintech", "#6a1b9a"],
+  ["Chip", "fintech", "#12253f"], ["Plum", "fintech", "#12c2b0"],
+  ["Moneybox", "fintech", "#2b3a67"], ["Zilch", "fintech", "#00d1b0"],
+  ["Cheddar", "fintech", "#f5b301"], ["Mettle", "fintech", "#14233c"],
+  ["Tide", "fintech", "#3b48ff"], ["Anna Money", "fintech", "#1a1a1a"],
+  ["Soldo", "fintech", "#1a1a1a"], ["Suits Me", "fintech", "#2d2a70"],
+  ["Currensea", "fintech", "#0a6b6b"], ["Dozens", "fintech", "#1a1a1a"],
+  ["Marcus by Goldman Sachs", "fintech", "#0033a0"],
+  // Building societies
+  ["Nationwide", "bs", "#1b1b6f"], ["Coventry Building Society", "bs", "#00263e"],
+  ["Yorkshire Building Society", "bs", "#002d72"], ["Skipton Building Society", "bs", "#0072ce"],
+  ["Leeds Building Society", "bs", "#009fdf"], ["Principality Building Society", "bs", "#e30613"],
+  ["Nottingham Building Society", "bs", "#003b71"], ["Newcastle Building Society", "bs", "#005eb8"],
+  ["Cumberland Building Society", "bs", "#005eb8"], ["West Brom Building Society", "bs", "#0072ce"],
+  ["Progressive Building Society", "bs", "#005eb8"], ["Saffron Building Society", "bs", "#e6a400"],
+  ["Cambridge Building Society", "bs", "#0072ce"], ["Furness Building Society", "bs", "#004b87"],
+  ["Melton Building Society", "bs", "#005eb8"], ["Newbury Building Society", "bs", "#0072ce"],
+  ["Monmouthshire Building Society", "bs", "#e30613"], ["Dudley Building Society", "bs", "#004b87"],
+  ["Ecology Building Society", "bs", "#4a7729"], ["Hanley Economic Building Society", "bs", "#005eb8"],
+  ["Mansfield Building Society", "bs", "#005eb8"], ["Marsden Building Society", "bs", "#0072ce"],
+  ["Family Building Society", "bs", "#005eb8"], ["Scottish Building Society", "bs", "#002d72"],
+  ["Teachers Building Society", "bs", "#0072ce"], ["Vernon Building Society", "bs", "#005eb8"],
+  ["Hinckley & Rugby Building Society", "bs", "#004b87"], ["Darlington Building Society", "bs", "#005eb8"],
+  // Challenger / savings / specialist
+  ["Aldermore", "bank", "#6a1b9a"], ["Shawbrook Bank", "bank", "#e2001a"],
+  ["Paragon Bank", "bank", "#e30613"], ["OakNorth", "bank", "#1a1a1a"],
+  ["Allica Bank", "bank", "#1a1a1a"], ["Investec", "bank", "#1a3a5f"],
+  ["Al Rayan Bank", "bank", "#6a1b9a"], ["Gatehouse Bank", "bank", "#0a6b6b"],
+  ["Charter Savings Bank", "bank", "#e30613"], ["Kent Reliance", "bank", "#004b87"],
+  ["Ford Money", "bank", "#003478"], ["RCI Bank", "bank", "#ffcc00"],
+  ["Hodge Bank", "bank", "#004b87"], ["United Trust Bank", "bank", "#1a1a1a"],
+  ["Secure Trust Bank", "bank", "#004b87"], ["Hampshire Trust Bank", "bank", "#0a6b6b"],
+  // Credit cards / issuers
+  ["American Express", "credit", "#006fcf"], ["Barclaycard", "credit", "#00395d"],
+  ["Capital One", "credit", "#004977"], ["MBNA", "credit", "#e2231a"],
+  ["Vanquis", "credit", "#7a2682"], ["Aqua", "credit", "#00a3a1"],
+  ["Marbles", "credit", "#6a1b9a"], ["Ocean", "credit", "#0090d4"],
+  ["Luma", "credit", "#6a1b9a"], ["Fluid", "credit", "#00539f"],
+  ["Opus", "credit", "#1a1a1a"], ["Zable", "credit", "#1a1a1a"],
+  ["Jaja", "credit", "#ff5a00"], ["Tymit", "credit", "#6c2bd9"],
+  ["118 118 Money", "credit", "#e30613"], ["Thinkmoney", "credit", "#00a3a1"],
+  ["NewDay", "credit", "#e30613"], ["Amazon Barclaycard", "credit", "#ff9900"],
+  // Store cards / BNPL
+  ["PayPal", "store", "#003087"], ["Klarna", "store", "#ffa3bd"],
+  ["Clearpay", "store", "#86e6c8"], ["Laybuy", "store", "#6c2bd9"],
+  ["Very", "store", "#5a2d81"], ["Littlewoods", "store", "#e30613"],
+  ["Next Pay", "store", "#1a1a1a"], ["Argos Card", "store", "#e30613"],
+  ["JD Williams", "store", "#004b87"], ["Studio", "store", "#e30613"],
+  // Non-card options
+  ["Cash", "bank", "#4b5563"], ["Other / custom", "bank", "#334155"],
+];
+const KIND_TYPE = { bank: "Current", bs: "Savings", fintech: "Current", credit: "Credit", store: "Credit" };
+
 /* ---------- State ---------- */
 let state = load();
 
@@ -213,9 +295,38 @@ function buildSwatches() {
   });
 }
 
+function renderBankResults(q = "") {
+  const query = q.trim().toLowerCase();
+  const matches = BANKS.filter(b => b[0].toLowerCase().includes(query));
+  const list = $("#bankResults");
+  if (!matches.length) {
+    list.innerHTML = `<div class="bank-empty">No match — type your card's name below.</div>`;
+    return;
+  }
+  list.innerHTML = matches.map(([name, kind, color]) =>
+    `<div class="bank-item" data-name="${esc(name)}" data-kind="${kind}" data-color="${color}">
+      <span class="bdot" style="background:${color}"></span>
+      <span class="bname">${esc(name)}</span>
+      <span class="bkind">${BANK_KINDS[kind]}</span>
+    </div>`).join("");
+  $$("#bankResults .bank-item").forEach(item => item.onclick = () => {
+    let name = item.dataset.name;
+    if (name === "Other / custom") name = "";
+    cardForm.name.value = name;
+    cardForm.type.value = KIND_TYPE[item.dataset.kind] || "Current";
+    selectedColor = item.dataset.color;
+    buildSwatches();
+    $$("#bankResults .bank-item").forEach(x => x.classList.toggle("active", x === item));
+    cardForm.name.focus();
+  };
+}
+$("#bankSearch").addEventListener("input", (e) => renderBankResults(e.target.value));
+
 function openCardModal(card = null) {
   editingCard = card;
   cardForm.reset();
+  $("#bankSearch").value = "";
+  renderBankResults("");
   $("#cardModalTitle").textContent = card ? "Edit card" : "Add a card";
   $("#deleteCardBtn").hidden = !card;
   selectedColor = card ? card.color : CARD_COLORS[0];
@@ -420,18 +531,19 @@ $("#wipeBtn").onclick = () => {
   toast("Everything erased");
 };
 
-/* ---------- Seed sample data on first run ---------- */
-function seedIfEmpty() {
-  if (state.cards.length || localStorage.getItem(STORE)) return;
-  state.cards = [
-    { id: uid(), name: "HSBC", type: "Current", number: "04-00-04 · 61994667", balance: 500, color: "#c8102e" },
-    { id: uid(), name: "monzo", type: "Current", number: "04-00-03 · 61994667", balance: 447.79, color: "#e8443b" },
-  ];
-  save();
+/* ---------- One-time cleanup of the old demo cards ----------
+   The app used to seed two sample cards. If those untouched demo cards are
+   still the only thing stored, clear them so the app starts empty. */
+function clearOldDemo() {
+  if (state.tx.length || state.cards.length !== 2) return;
+  const names = state.cards.map(c => c.name).sort().join(",");
+  const isDemo = names === "HSBC,monzo" &&
+    state.cards.every(c => (c.number || "").includes("61994667"));
+  if (isDemo) { state.cards = []; save(); }
 }
 
 /* ---------- Init ---------- */
-seedIfEmpty();
+clearOldDemo();
 render();
 
 /* ---------- Service worker ---------- */

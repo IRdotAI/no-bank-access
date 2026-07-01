@@ -96,6 +96,7 @@
         <div class="panel-head"><h2>Security</h2></div>
         <p class="muted">Lock the app with a 4-digit PIN. It's asked each time you open the app on this device.</p>
         <button class="wide-btn ghost" id="setPinBtn">Set / change app PIN</button>
+        <button class="wide-btn ghost" id="bioBtn" hidden>Enable Face ID / fingerprint unlock</button>
         <button class="wide-btn ghost" id="removePinBtn">Turn off app lock</button>
 
         <div class="panel-head"><h2>Your data</h2></div>
@@ -147,6 +148,7 @@
       <button type="button" data-k="0">0</button>
       <button type="button" data-k="del" class="key-del">⌫</button>
     </div>
+    <button class="link" id="lockBio" hidden>Use Face ID / fingerprint</button>
     <button class="link" id="lockCancel" hidden>Cancel</button>
   </div>
 

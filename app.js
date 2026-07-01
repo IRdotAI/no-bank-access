@@ -1025,8 +1025,11 @@ function showLock(mode) {
     mode === "set" ? "Choose a 4-digit PIN" :
     mode === "confirm" ? "Confirm your PIN" : "Enter your PIN";
   $("#lockCancel").hidden = (mode === "unlock");
+  const showBio = (mode === "unlock" && bioIsSet());
+  $("#lockBio").hidden = !showBio;
   renderDots();
   $("#lockScreen").hidden = false;
+  if (showBio) setTimeout(unlockBio, 250);   // auto-prompt biometrics
 }
 function hideLock() { $("#lockScreen").hidden = true; lockBuf = ""; pinTemp = ""; }
 
@@ -1070,8 +1073,67 @@ $("#removePinBtn").onclick = () => {
   if (!pinIsSet()) { toast("No PIN is set"); return; }
   if (!confirm("Turn off the app lock?")) return;
   localStorage.removeItem(PIN_KEY);
+  localStorage.removeItem(BIO_KEY);   // biometrics rely on the lock being on
   toast("App lock turned off");
+  refreshSecurityUI();
 };
+
+/* ---------- Biometric unlock (WebAuthn platform authenticator) ---------- */
+const BIO_KEY = "nba.bio";
+const bioIsSet = () => !!localStorage.getItem(BIO_KEY);
+const b64ToBuf = (b) => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+const bufToB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+
+async function bioAvailable() {
+  try {
+    return !!(window.PublicKeyCredential &&
+      await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+  } catch (_) { return false; }
+}
+
+async function enableBio() {
+  if (!pinIsSet()) { toast("Set a PIN first"); showLock("set"); return; }
+  if (!await bioAvailable()) { toast("No biometrics on this device"); return; }
+  try {
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp: { name: "No Bank Access", id: location.hostname },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: "no-bank-access", displayName: "No Bank Access" },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "preferred" },
+      timeout: 60000,
+    }});
+    localStorage.setItem(BIO_KEY, bufToB64(cred.rawId));
+    toast("Biometric unlock on");
+  } catch (_) { toast("Couldn't set up biometrics"); }
+  refreshSecurityUI();
+}
+
+async function unlockBio() {
+  if (!bioIsSet()) return;
+  try {
+    await navigator.credentials.get({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{ type: "public-key", id: b64ToBuf(localStorage.getItem(BIO_KEY)) }],
+      userVerification: "required", rpId: location.hostname, timeout: 60000,
+    }});
+    hideLock();
+  } catch (_) { /* fall back to PIN */ }
+}
+
+$("#lockBio").onclick = unlockBio;
+$("#bioBtn").onclick = () => {
+  if (bioIsSet()) { localStorage.removeItem(BIO_KEY); toast("Biometric unlock off"); refreshSecurityUI(); }
+  else enableBio();
+};
+
+/* Reflect current biometric availability/state in the Security section. */
+async function refreshSecurityUI() {
+  const btn = $("#bioBtn");
+  const available = await bioAvailable();
+  btn.hidden = !available;
+  btn.textContent = bioIsSet() ? "Turn off Face ID / fingerprint unlock" : "Enable Face ID / fingerprint unlock";
+}
 
 /* ---------- Init ---------- */
 clearOldDemo();
@@ -1079,6 +1141,7 @@ const recLogged = processRecurring();
 render();
 if (pinIsSet()) showLock("unlock");
 if (recLogged) toast(`Logged ${recLogged} recurring payment${recLogged > 1 ? "s" : ""}`);
+refreshSecurityUI();
 
 /* ---------- Service worker ---------- */
 if ("serviceWorker" in navigator) {

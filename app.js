@@ -339,7 +339,7 @@ function renderBankResults(q = "") {
     buildSwatches();
     $$("#bankResults .bank-item").forEach(x => x.classList.toggle("active", x === item));
     cardForm.name.focus();
-  };
+  });
 }
 $("#bankSearch").addEventListener("input", (e) => renderBankResults(e.target.value));
 $("#bankSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") e.preventDefault(); });

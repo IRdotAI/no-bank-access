@@ -1,5 +1,5 @@
 /* Service worker — caches the app shell so it works fully offline. */
-const CACHE = "nba-cache-v4";
+const CACHE = "nba-cache-v5";
 const ASSETS = [
   "./",
   "./index.html",

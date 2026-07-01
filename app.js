@@ -321,6 +321,7 @@ function renderBankResults(q = "") {
   };
 }
 $("#bankSearch").addEventListener("input", (e) => renderBankResults(e.target.value));
+$("#bankSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") e.preventDefault(); });
 
 function openCardModal(card = null) {
   editingCard = card;

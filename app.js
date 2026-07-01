@@ -358,6 +358,29 @@ let expandedCat = null;    // which category is expanded to show its transaction
 
 function money2(n) { return `£${money(n).w}.${money(n).dec}`; }
 
+/* Build an SVG donut chart from category rows [ [id, {amount}], ... ]. */
+function donutHTML(rows, total, label) {
+  const r = 52, C = 2 * Math.PI * r, cx = 60, cy = 60, w = 16;
+  let off = 0, segs;
+  if (total > 0) {
+    segs = rows.map(([id, v]) => {
+      const c = cat(id);
+      const len = (v.amount / total) * C;
+      const s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c.color}" stroke-width="${w}" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}"/>`;
+      off += len;
+      return s;
+    }).join("");
+  } else {
+    segs = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--panel-2)" stroke-width="${w}"/>`;
+  }
+  return `<div class="donut">
+    <svg viewBox="0 0 120 120" width="156" height="156">
+      <g transform="rotate(-90 ${cx} ${cy})">${segs}</g>
+    </svg>
+    <div class="donut-center"><b>${moneyHTML(total)}</b><small>${label} this month</small></div>
+  </div>`;
+}
+
 function renderTrends() {
   const y = trendMonth.getFullYear(), m = trendMonth.getMonth();
   $("#monthSwitch").innerHTML = `
@@ -392,7 +415,6 @@ function renderTrends() {
   // directional breakdown by category
   const dirTx = monthTx.filter(t => t.dir === trendsDir);
   const total = dirTx.reduce((s, t) => s + t.amount, 0);
-  $("#trendsTotal").innerHTML = `${moneyHTML(total)}<small>total ${trendsDir === "out" ? "spent" : "received"} this month</small>`;
 
   const byCat = {};
   dirTx.forEach(t => {
@@ -410,6 +432,8 @@ function renderTrends() {
     return 0;
   });
   const max = rows.reduce((mx, [, v]) => Math.max(mx, v.amount), 1);
+
+  $("#trendsDonut").innerHTML = donutHTML(rows, total, trendsDir === "out" ? "spent" : "received");
 
   $("#categoryBars").innerHTML = rows.length
     ? rows.map(([id, v]) => {

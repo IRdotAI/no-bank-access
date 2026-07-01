@@ -217,6 +217,16 @@ body {
 .month-switch .label { flex: 1; text-align: center; font-weight: 600; }
 .trends-total { font-size: 28px; font-weight: 800; margin: 6px 0 16px; }
 .trends-total small { font-size: 14px; color: var(--muted); font-weight: 500; display: block; }
+.donut-wrap { display: flex; justify-content: center; margin: 8px 0 18px; }
+.donut { position: relative; width: 156px; height: 156px; }
+.donut svg circle { transition: stroke-dasharray .4s ease; }
+.donut-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+.donut-center b { font-size: 20px; font-weight: 800; }
+.donut-center b small { font-size: 12px; opacity: .85; }
+.donut-center > small { color: var(--muted); font-size: 11px; margin-top: 3px; }
 .cat-bars { display: flex; flex-direction: column; gap: 14px; }
 .cat-row { cursor: pointer; }
 .cat-row.open { background: var(--panel-2); border-radius: 14px; padding: 12px; }

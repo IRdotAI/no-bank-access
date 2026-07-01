@@ -70,6 +70,15 @@ body {
 }
 .cards.stacked .card:first-child { margin-top: 0; }
 .cards.stacked .card:active { transform: scale(.99); }
+/* staggered fan-out when backing out of a focused card */
+.cards.stacked .card.fan { animation: cardFan .4s cubic-bezier(.22,.9,.24,1) backwards; }
+@keyframes cardFan {
+  from { transform: translateY(-26px) scale(.95); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cards.stacked .card.fan { animation: none; }
+}
 
 /* Focused: only the selected card shows, full size */
 .cards.focused { gap: 0; }

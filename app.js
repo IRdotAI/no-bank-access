@@ -142,6 +142,7 @@ const BANK_LOGOS = {
 let state = load();
 let selectedCardId = null;   // which card's activity is shown on Home (null = all)
 let justFocused = false;     // true for the single render right after expanding a card
+let justFanned = false;      // true for the single render right after backing out to the stack
 
 function load() {
   try {
@@ -236,14 +237,16 @@ function renderCards() {
   if (back) back.hidden = !focused;
   if (hint) hint.textContent = focused ? "" : "Tap a card to see its activity. Manage cards in the Payments tab.";
   const wifi = `<svg class="wifi" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8a6 6 0 0 1 0 8"/><path d="M11.5 5.5a10 10 0 0 1 0 13"/><path d="M14.5 3a14 14 0 0 1 0 18"/></svg>`;
-  el.innerHTML = state.cards.map(c => {
+  el.innerHTML = state.cards.map((c, i) => {
     const bal = cardBalance(c);
     const logo = BANK_LOGOS[c.name];
     const badge = logo
       ? `<span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">${logo}</svg></span>`
       : `<span class="mono">${esc(initials(c.name))}</span>`;
     const sel = c.id === selectedCardId ? " selected" + (justFocused ? " expand" : "") : "";
-    return `<div class="card${sel}" style="--bg:${c.color};--tc:${textOn(c.color)}" data-card="${c.id}">
+    const fan = justFanned && !selectedCardId ? " fan" : "";
+    const delay = fan ? `;animation-delay:${i * 55}ms` : "";
+    return `<div class="card${sel}${fan}" style="--bg:${c.color};--tc:${textOn(c.color)}${delay}" data-card="${c.id}">
       <div class="card-head">
         ${badge}
         <span class="brand">${esc(c.name)}</span>
@@ -260,6 +263,7 @@ function renderCards() {
     </div>`;
   }).join("");
   justFocused = false;   // one-shot: don't re-animate on later renders
+  justFanned = false;
 }
 
 function txRowHTML(t) {
@@ -369,10 +373,10 @@ $$(".tab-btn").forEach(btn => {
   };
 });
 $("#activityAll").onclick = () => {
-  if (selectedCardId) { selectedCardId = null; render(); }   // clear the card filter
-  else $('.tab-btn[data-tab="payments"]').click();           // otherwise show all transactions
+  if (selectedCardId) { selectedCardId = null; justFanned = true; render(); }  // clear the card filter
+  else $('.tab-btn[data-tab="payments"]').click();                            // otherwise show all transactions
 };
-$("#cardsBack").onclick = () => { selectedCardId = null; render(); };
+$("#cardsBack").onclick = () => { selectedCardId = null; justFanned = true; render(); };
 
 /* ---------- Card modal ---------- */
 const cardModal = $("#cardModal");
@@ -580,6 +584,7 @@ document.body.addEventListener("click", (e) => {
       const was = selectedCardId;
       selectedCardId = selectedCardId === id ? null : id;
       justFocused = !!selectedCardId && selectedCardId !== was;  // animate only on expand
+      justFanned = !selectedCardId && !!was;                     // ...or on backing out
       render();
     } else {
       // Payments tab: tap opens the card editor

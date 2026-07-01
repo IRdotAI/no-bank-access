@@ -17,14 +17,11 @@
   <div id="app">
     <!-- Top bar -->
     <header class="topbar">
-      <button class="avatar" id="avatarBtn" aria-label="Profile">
-        <span id="avatarInitials">NB</span>
-      </button>
-      <div class="topbar-title">
-        <strong>No Bank Access</strong>
-        <small>Manual tracker</small>
+      <img class="brand-logo" src="icons/logo-mark.png" alt="No Bank Access" />
+      <div class="topbar-actions">
+        <button class="icon-btn add-tx" id="addTxTop" aria-label="Log a payment" title="Log a payment">+</button>
+        <button class="icon-btn add-card" id="addCardTop" aria-label="Add card" title="Add a card">+</button>
       </div>
-      <button class="icon-btn" id="addCardTop" aria-label="Add card">+</button>
     </header>
 
     <!-- HOME TAB -->
@@ -81,9 +78,6 @@
         <button class="wide-btn danger" id="wipeBtn">Erase everything</button>
       </section>
     </main>
-
-    <!-- Floating add-transaction button -->
-    <button class="fab" id="fab" aria-label="Add transaction">+</button>
 
     <!-- Bottom nav -->
     <nav class="tabbar">

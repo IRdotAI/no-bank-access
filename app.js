@@ -128,6 +128,21 @@ function moneyHTML(n) {
   const m = money(n);
   return `£${m.sign}${m.w}<small>.${m.dec}</small>`;
 }
+/* Pick black or white text so it stays readable on any brand colour. */
+function textOn(hex) {
+  const c = String(hex || "#334155").replace("#", "");
+  const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.62 ? "#10141f" : "#ffffff";
+}
+/* Monogram initials for a card, used as a little logo badge. */
+function initials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "•";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
 function cardBalance(card) {
   const start = card.balance || 0;
   const delta = state.tx
@@ -168,16 +183,22 @@ function renderCards() {
     el.innerHTML = `<div class="empty-cards">No cards yet.<br>Tap <b>+</b> above to add your first card.</div>`;
     return;
   }
+  const wifi = `<svg class="wifi" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8a6 6 0 0 1 0 8"/><path d="M11.5 5.5a10 10 0 0 1 0 13"/><path d="M14.5 3a14 14 0 0 1 0 18"/></svg>`;
   el.innerHTML = state.cards.map(c => {
     const bal = cardBalance(c);
-    return `<div class="card ${bal < 0 ? "negative" : ""}" style="background:${c.color}" data-card="${c.id}">
-      <div class="row">
-        <div class="brand">${esc(c.name)}</div>
-        <div class="balance">${moneyHTML(bal)}</div>
+    return `<div class="card" style="--bg:${c.color};--tc:${textOn(c.color)}" data-card="${c.id}">
+      <div class="card-head">
+        <span class="mono">${esc(initials(c.name))}</span>
+        <span class="brand">${esc(c.name)}</span>
+        ${wifi}
       </div>
-      <div class="meta">
-        <span>${esc(c.number || c.type)}</span>
-        <span class="type-tag">${esc(c.type)}</span>
+      <span class="chip" aria-hidden="true"></span>
+      <div class="card-bottom">
+        <div class="balance">${moneyHTML(bal)}</div>
+        <div class="meta">
+          <span>${esc(c.number || c.type)}</span>
+          <span class="type-tag">${esc(c.type)}</span>
+        </div>
       </div>
     </div>`;
   }).join("");
@@ -473,7 +494,7 @@ $("#deleteTxBtn").onclick = () => {
   render();
 };
 
-$("#fab").onclick = () => openTxModal();
+$("#addTxTop").onclick = () => openTxModal();
 
 /* ---------- Delegated taps for cards & transactions ---------- */
 document.body.addEventListener("click", (e) => {

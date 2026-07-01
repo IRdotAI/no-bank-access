@@ -153,3 +153,6 @@ make_icon(w, h, px, 512, NAVY, 0.12, "icons/icon-512.png")
 make_icon(w, h, px, 512, NAVY, 0.20, "icons/maskable-512.png")
 # Apple touch icon (no transparency, navy)
 make_icon(w, h, px, 180, NAVY, 0.12, "icons/apple-touch-icon.png")
+# Trimmed, transparent logo mark for the in-app header
+write_png("icons/logo-mark.png", w, h, px)
+print("wrote icons/logo-mark.png", w, "x", h)

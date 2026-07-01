@@ -930,9 +930,85 @@ function clearOldDemo() {
   if (isDemo) { state.cards = []; save(); }
 }
 
+/* ---------- App lock (PIN) ---------- */
+const PIN_KEY = "nba.pin";
+const PIN_LEN = 4;
+let lockMode = "unlock";   // unlock | set | confirm
+let lockBuf = "";
+let pinTemp = "";
+
+const pinIsSet = () => !!localStorage.getItem(PIN_KEY);
+
+async function sha(pin) {
+  const data = new TextEncoder().encode("nba-lock:" + pin);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function renderDots() {
+  $("#lockDots").innerHTML = Array.from({ length: PIN_LEN }, (_, i) =>
+    `<span class="dot ${i < lockBuf.length ? "on" : ""}"></span>`).join("");
+}
+
+function showLock(mode) {
+  lockMode = mode;
+  lockBuf = "";
+  $("#lockTitle").textContent =
+    mode === "set" ? "Choose a 4-digit PIN" :
+    mode === "confirm" ? "Confirm your PIN" : "Enter your PIN";
+  $("#lockCancel").hidden = (mode === "unlock");
+  renderDots();
+  $("#lockScreen").hidden = false;
+}
+function hideLock() { $("#lockScreen").hidden = true; lockBuf = ""; pinTemp = ""; }
+
+function lockShake() {
+  const el = $("#lockScreen");
+  el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+}
+
+async function submitPin() {
+  if (lockMode === "unlock") {
+    if (await sha(lockBuf) === localStorage.getItem(PIN_KEY)) hideLock();
+    else { lockShake(); lockBuf = ""; renderDots(); }
+  } else if (lockMode === "set") {
+    pinTemp = lockBuf; showLock("confirm");
+  } else if (lockMode === "confirm") {
+    if (lockBuf === pinTemp) {
+      localStorage.setItem(PIN_KEY, await sha(lockBuf));
+      hideLock(); toast("App lock turned on");
+    } else { lockShake(); toast("PINs didn't match"); showLock("set"); }
+  }
+}
+
+$("#keypad").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-k]");
+  if (!b) return;
+  if (b.dataset.k === "del") { lockBuf = lockBuf.slice(0, -1); renderDots(); return; }
+  if (lockBuf.length >= PIN_LEN) return;
+  lockBuf += b.dataset.k;
+  renderDots();
+  if (lockBuf.length === PIN_LEN) submitPin();
+});
+document.addEventListener("keydown", (e) => {
+  if ($("#lockScreen").hidden) return;
+  if (/^[0-9]$/.test(e.key) && lockBuf.length < PIN_LEN) { lockBuf += e.key; renderDots(); if (lockBuf.length === PIN_LEN) submitPin(); }
+  else if (e.key === "Backspace") { lockBuf = lockBuf.slice(0, -1); renderDots(); }
+});
+$("#lockCancel").onclick = () => hideLock();
+
+$("#setPinBtn").onclick = () => showLock("set");
+$("#removePinBtn").onclick = () => {
+  if (!pinIsSet()) { toast("No PIN is set"); return; }
+  if (!confirm("Turn off the app lock?")) return;
+  localStorage.removeItem(PIN_KEY);
+  toast("App lock turned off");
+};
+
 /* ---------- Init ---------- */
 clearOldDemo();
 render();
+if (pinIsSet()) showLock("unlock");
 
 /* ---------- Service worker ---------- */
 if ("serviceWorker" in navigator) {

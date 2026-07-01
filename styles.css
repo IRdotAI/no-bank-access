@@ -420,6 +420,38 @@ form input:focus, form select:focus { outline: none; border-color: var(--blue); 
 .cat-grid button .ce { font-size: 20px; }
 .cat-grid button.active { border-color: var(--blue); background: var(--panel-2); }
 
+/* ---------- Lock screen ---------- */
+.lock {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 24px calc(24px + env(safe-area-inset-left));
+}
+.lock-logo { height: 64px; width: auto; }
+.lock-title { font-size: 17px; font-weight: 600; }
+.lock-dots { display: flex; gap: 16px; height: 16px; }
+.lock-dots .dot {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid var(--muted); background: transparent; transition: background .1s;
+}
+.lock-dots .dot.on { background: var(--blue); border-color: var(--blue); }
+.lock.shake { animation: shake .35s; }
+@keyframes shake {
+  10%,90% { transform: translateX(-4px); } 30%,70% { transform: translateX(7px); }
+  50% { transform: translateX(-9px); }
+}
+.keypad {
+  display: grid; grid-template-columns: repeat(3, 74px); gap: 16px; margin-top: 6px;
+}
+.keypad button {
+  width: 74px; height: 74px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel-2);
+  color: var(--text); font-size: 26px; font-weight: 500; cursor: pointer;
+}
+.keypad button:active { background: var(--panel); }
+.keypad .key-del { border: none; background: none; font-size: 24px; }
+#lockCancel { margin-top: 6px; }
+
 /* ---------- Toast ---------- */
 .toast {
   position: fixed; bottom: calc(90px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);

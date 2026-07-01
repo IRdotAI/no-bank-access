@@ -88,6 +88,11 @@
           <li><strong>Pick a category</strong> — shopping, transfers, entertainment, charity and more.</li>
           <li><strong>Watch your balances</strong> — every entry updates the card and your Trends.</li>
         </ol>
+        <div class="panel-head"><h2>Security</h2></div>
+        <p class="muted">Lock the app with a 4-digit PIN. It's asked each time you open the app on this device.</p>
+        <button class="wide-btn ghost" id="setPinBtn">Set / change app PIN</button>
+        <button class="wide-btn ghost" id="removePinBtn">Turn off app lock</button>
+
         <div class="panel-head"><h2>Your data</h2></div>
         <p class="muted">Everything is stored only on this device (offline). Nothing is sent anywhere — there really is no bank access.</p>
         <button class="wide-btn ghost" id="exportBtn">Export my data (backup)</button>
@@ -116,6 +121,28 @@
         <span>Help</span>
       </button>
     </nav>
+  </div>
+
+  <!-- ===== Lock screen ===== -->
+  <div id="lockScreen" class="lock" hidden>
+    <img class="lock-logo" src="icons/logo-mark.png" alt="No Bank Access" />
+    <div class="lock-title" id="lockTitle">Enter your PIN</div>
+    <div class="lock-dots" id="lockDots"></div>
+    <div class="keypad" id="keypad">
+      <button type="button" data-k="1">1</button>
+      <button type="button" data-k="2">2</button>
+      <button type="button" data-k="3">3</button>
+      <button type="button" data-k="4">4</button>
+      <button type="button" data-k="5">5</button>
+      <button type="button" data-k="6">6</button>
+      <button type="button" data-k="7">7</button>
+      <button type="button" data-k="8">8</button>
+      <button type="button" data-k="9">9</button>
+      <span></span>
+      <button type="button" data-k="0">0</button>
+      <button type="button" data-k="del" class="key-del">⌫</button>
+    </div>
+    <button class="link" id="lockCancel" hidden>Cancel</button>
   </div>
 
   <!-- ===== Card modal ===== -->

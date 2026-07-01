@@ -62,13 +62,23 @@ body {
 /* ---------- Cards ---------- */
 .cards { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
 
-/* Apple-Wallet-style overlapping stack when no card is selected */
+/* Apple-Wallet-style overlapping stack when no card is selected.
+   Every card except the front one is clipped to just its header (logo +
+   name) so no balance/chip spills onto the card below. */
 .cards.stacked { gap: 0; }
 .cards.stacked .card {
-  margin-top: -96px;
-  transition: margin-top .25s ease, transform .2s ease;
+  min-height: 0;
+  justify-content: flex-start;
+  padding: 15px 18px;
+  margin-top: -6px;
+  transition: transform .2s ease;
 }
 .cards.stacked .card:first-child { margin-top: 0; }
+/* peeking cards: show only the header row, hide chip + balance */
+.cards.stacked .card:not(:last-child) .chip,
+.cards.stacked .card:not(:last-child) .card-bottom { display: none; }
+/* front card: full detail */
+.cards.stacked .card:last-child { min-height: 158px; padding: 16px 18px 18px; justify-content: space-between; }
 .cards.stacked .card:active { transform: scale(.99); }
 /* staggered fan-out when backing out of a focused card */
 .cards.stacked .card.fan { animation: cardFan .4s cubic-bezier(.22,.9,.24,1) backwards; }

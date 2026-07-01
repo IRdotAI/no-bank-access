@@ -75,6 +75,15 @@ body {
 .cards.focused { gap: 0; }
 .cards.focused .card { display: none; }
 .cards.focused .card.selected { display: flex; margin-top: 0; box-shadow: 0 10px 26px rgba(0,0,0,.4); }
+.cards.focused .card.selected.expand { animation: cardExpand .36s cubic-bezier(.22,.9,.24,1); }
+@keyframes cardExpand {
+  from { transform: translateY(-34px) scale(.94); opacity: 0; }
+  60%  { opacity: 1; }
+  to   { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cards.focused .card.selected.expand { animation: none; }
+}
 
 .cards-back {
   background: none; border: none; color: #5aa2ff;

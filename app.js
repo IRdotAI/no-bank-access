@@ -141,6 +141,7 @@ const BANK_LOGOS = {
 /* ---------- State ---------- */
 let state = load();
 let selectedCardId = null;   // which card's activity is shown on Home (null = all)
+let justFocused = false;     // true for the single render right after expanding a card
 
 function load() {
   try {
@@ -241,7 +242,7 @@ function renderCards() {
     const badge = logo
       ? `<span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">${logo}</svg></span>`
       : `<span class="mono">${esc(initials(c.name))}</span>`;
-    const sel = c.id === selectedCardId ? " selected" : "";
+    const sel = c.id === selectedCardId ? " selected" + (justFocused ? " expand" : "") : "";
     return `<div class="card${sel}" style="--bg:${c.color};--tc:${textOn(c.color)}" data-card="${c.id}">
       <div class="card-head">
         ${badge}
@@ -258,6 +259,7 @@ function renderCards() {
       </div>
     </div>`;
   }).join("");
+  justFocused = false;   // one-shot: don't re-animate on later renders
 }
 
 function txRowHTML(t) {
@@ -575,7 +577,9 @@ document.body.addEventListener("click", (e) => {
     const id = cardEl.dataset.card;
     if (cardEl.closest("#cardsList")) {
       // Home: tap selects the card to show its activity (tap again to clear)
+      const was = selectedCardId;
       selectedCardId = selectedCardId === id ? null : id;
+      justFocused = !!selectedCardId && selectedCardId !== was;  // animate only on expand
       render();
     } else {
       // Payments tab: tap opens the card editor

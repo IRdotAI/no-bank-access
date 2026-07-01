@@ -219,12 +219,21 @@ function render() {
 function renderCards() {
   const el = $("#cardsList");
   const hint = $("#cardsHint");
+  const back = $("#cardsBack");
+  // drop a stale selection (e.g. card was deleted)
+  if (selectedCardId && !state.cards.find(c => c.id === selectedCardId)) selectedCardId = null;
+  const focused = !!selectedCardId;
+
   if (!state.cards.length) {
+    el.className = "cards stacked";
     el.innerHTML = `<div class="empty-cards">No cards yet.<br>Tap <b>+</b> above to add your first card.</div>`;
     if (hint) hint.textContent = "";
+    if (back) back.hidden = true;
     return;
   }
-  if (hint) hint.textContent = "Tap a card to see its activity. Manage cards in the Payments tab.";
+  el.className = "cards " + (focused ? "focused" : "stacked");
+  if (back) back.hidden = !focused;
+  if (hint) hint.textContent = focused ? "" : "Tap a card to see its activity. Manage cards in the Payments tab.";
   const wifi = `<svg class="wifi" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8a6 6 0 0 1 0 8"/><path d="M11.5 5.5a10 10 0 0 1 0 13"/><path d="M14.5 3a14 14 0 0 1 0 18"/></svg>`;
   el.innerHTML = state.cards.map(c => {
     const bal = cardBalance(c);
@@ -361,6 +370,7 @@ $("#activityAll").onclick = () => {
   if (selectedCardId) { selectedCardId = null; render(); }   // clear the card filter
   else $('.tab-btn[data-tab="payments"]').click();           // otherwise show all transactions
 };
+$("#cardsBack").onclick = () => { selectedCardId = null; render(); };
 
 /* ---------- Card modal ---------- */
 const cardModal = $("#cardModal");

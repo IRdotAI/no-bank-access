@@ -61,6 +61,25 @@ body {
 
 /* ---------- Cards ---------- */
 .cards { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
+
+/* Apple-Wallet-style overlapping stack when no card is selected */
+.cards.stacked { gap: 0; }
+.cards.stacked .card {
+  margin-top: -96px;
+  transition: margin-top .25s ease, transform .2s ease;
+}
+.cards.stacked .card:first-child { margin-top: 0; }
+.cards.stacked .card:active { transform: scale(.99); }
+
+/* Focused: only the selected card shows, full size */
+.cards.focused { gap: 0; }
+.cards.focused .card { display: none; }
+.cards.focused .card.selected { display: flex; margin-top: 0; box-shadow: 0 10px 26px rgba(0,0,0,.4); }
+
+.cards-back {
+  background: none; border: none; color: #5aa2ff;
+  font-size: 14px; font-weight: 600; padding: 2px 2px 12px; cursor: pointer;
+}
 .card {
   --tc: #ffffff;
   border-radius: var(--radius);

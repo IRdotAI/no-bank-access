@@ -1161,15 +1161,39 @@ $$(".modal").forEach(m => m.addEventListener("click", (e) => {
   if (e.target === m) m.hidden = true;
 }));
 
-/* ---------- Data export / import / wipe ---------- */
-$("#exportBtn").onclick = () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `no-bank-access-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
+/* ---------- Data export / import / wipe / backup reminder ---------- */
+const LASTBK_KEY = "nba.lastBackup";
+
+async function shareBackup() {
+  const json = JSON.stringify(state, null, 2);
+  const fname = `no-bank-access-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  try {
+    const file = new File([json], fname, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "No Bank Access backup" });
+    } else {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      a.download = fname; a.click(); URL.revokeObjectURL(a.href);
+    }
+    localStorage.setItem(LASTBK_KEY, Date.now().toString());
+    hideBackupBanner();
+    toast("Backup saved");
+  } catch (_) { /* user cancelled the share sheet */ }
+}
+$("#exportBtn").onclick = shareBackup;
+$("#backupNow").onclick = shareBackup;
+
+function showBackupBanner() { $("#backupBanner").hidden = false; }
+function hideBackupBanner() { $("#backupBanner").hidden = true; }
+$("#backupDismiss").onclick = hideBackupBanner;
+
+function checkBackupReminder() {
+  const hasData = state.cards.length || state.tx.length || state.pots.length;
+  const last = parseInt(localStorage.getItem(LASTBK_KEY) || "0", 10);
+  const days = (Date.now() - last) / 86400000;
+  if (hasData && (!last || days >= 14)) showBackupBanner();
+}
 $("#importBtn").onclick = () => $("#importFile").click();
 $("#importFile").onchange = (e) => {
   const file = e.target.files[0];
@@ -1185,6 +1209,7 @@ $("#importFile").onchange = (e) => {
       if (!Array.isArray(state.recurring)) state.recurring = [];
       if (!Array.isArray(state.pots)) state.pots = [];
       if (!state.budgets || typeof state.budgets !== "object") state.budgets = {};
+      localStorage.setItem(LASTBK_KEY, Date.now().toString());   // they clearly have a copy
       render();
       toast("Backup imported");
     } catch (err) { toast("Could not read that file"); }
@@ -1354,6 +1379,7 @@ render();
 if (pinIsSet()) showLock("unlock");
 if (recLogged) toast(`Logged ${recLogged} recurring payment${recLogged > 1 ? "s" : ""}`);
 refreshSecurityUI();
+checkBackupReminder();
 
 /* ---------- Service worker ---------- */
 if ("serviceWorker" in navigator) {

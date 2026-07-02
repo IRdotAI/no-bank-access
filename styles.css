@@ -59,6 +59,18 @@ body {
 .icon-btn.add-tx { background: var(--red); }
 .icon-btn.add-card { background: var(--blue); }
 
+/* ---------- Backup banner ---------- */
+.backup-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(245, 158, 11, .13); border: 1px solid rgba(245, 158, 11, .4);
+  border-radius: 14px; padding: 10px 12px; margin-bottom: 14px;
+  font-size: 13px; line-height: 1.35;
+}
+.backup-banner span { flex: 1; }
+.bb-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.bb-btn { background: var(--blue); color: #fff; border: none; border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.bb-x { background: none; border: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; }
+
 /* ---------- Net worth ---------- */
 .networth { text-align: center; padding: 6px 0 18px; }
 .networth small { color: var(--muted); font-size: 13px; }

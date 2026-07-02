@@ -67,6 +67,7 @@
             <option value="name">A–Z</option>
           </select>
         </div>
+        <button type="button" class="chip-btn" id="budgetsBtn">Set budgets</button>
 
         <div id="trendsDonut" class="donut-wrap"></div>
         <div id="categoryBars" class="cat-bars"></div>
@@ -137,6 +138,19 @@
         <span>Help</span>
       </button>
     </nav>
+  </div>
+
+  <!-- ===== Budgets ===== -->
+  <div class="modal" id="budgetsModal" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Monthly budgets</h3>
+        <button class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <p class="muted">Set a monthly spending limit per category. Leave blank for no limit.</p>
+      <div id="budgetsList"></div>
+      <button class="wide-btn" id="saveBudgets">Save budgets</button>
+    </div>
   </div>
 
   <!-- ===== Transfer between cards ===== -->

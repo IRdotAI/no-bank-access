@@ -154,6 +154,7 @@ function load() {
 if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
 if (!Array.isArray(state.recurring)) state.recurring = [];
 if (!Array.isArray(state.pots)) state.pots = [];
+if (!state.budgets || typeof state.budgets !== "object") state.budgets = {};
 const POT_EMOJIS = ["🐷", "🏝️", "🏠", "🚗", "✈️", "🎁", "💻", "🎓", "🚨", "💍", "🎮", "⭐"];
 function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
 
@@ -550,12 +551,20 @@ function renderTrends() {
         const pct = total ? Math.round((v.amount / total) * 100) : 0;
         const open = expandedCat === id;
         const txs = [...v.txs].sort((a, b) => new Date(b.when) - new Date(a.when));
+        const budget = trendsDir === "out" ? (state.budgets[id] || 0) : 0;
+        let barColor = c.color, budgetLine = "";
+        if (budget > 0) {
+          const bpct = Math.round(v.amount / budget * 100);
+          barColor = bpct > 100 ? "#ef4444" : bpct >= 80 ? "#f59e0b" : c.color;
+          budgetLine = `<div class="cat-budget ${bpct > 100 ? "over" : ""}">${money2(v.amount)} of ${money2(budget)} budget · ${bpct}%${bpct > 100 ? ` · over by ${money2(v.amount - budget)}` : ""}</div>`;
+        }
         return `<div class="cat-row ${open ? "open" : ""}" data-cat="${id}">
           <div class="cat-top">
             <span class="cat-name">${c.emoji} ${c.name} <span class="cat-count">${v.count}</span></span>
             <span class="cat-amt">${money2(v.amount)} <span class="cat-pct">${pct}%</span></span>
           </div>
-          <div class="bar"><span style="width:${Math.max(5, (v.amount / max) * 100)}%;background:${c.color}"></span></div>
+          <div class="bar"><span style="width:${Math.max(5, (v.amount / max) * 100)}%;background:${barColor}"></span></div>
+          ${budgetLine}
           ${open ? `<div class="cat-txs">${groupedTxHTML(txs)}</div>` : ""}
         </div>`;
       }).join("")
@@ -579,6 +588,30 @@ $("#categoryBars").addEventListener("click", (e) => {
   expandedCat = expandedCat === row.dataset.cat ? null : row.dataset.cat;
   renderTrends();
 });
+
+/* ---------- Budgets ---------- */
+const budgetsModal = $("#budgetsModal");
+$("#budgetsBtn").onclick = () => {
+  $("#budgetsList").innerHTML = CATEGORIES.filter(c => c.id !== "income").map(c =>
+    `<div class="budget-row">
+      <span class="cat-name">${c.emoji} ${c.name}</span>
+      <input type="number" step="0.01" min="0" inputmode="decimal" data-bcat="${c.id}"
+        value="${state.budgets[c.id] || ""}" placeholder="—" />
+    </div>`).join("");
+  budgetsModal.hidden = false;
+};
+$("#saveBudgets").onclick = () => {
+  const next = {};
+  $$("#budgetsList input[data-bcat]").forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (v > 0) next[inp.dataset.bcat] = v;
+  });
+  state.budgets = next;
+  save();
+  budgetsModal.hidden = true;
+  render();
+  toast("Budgets saved");
+};
 $("#trendsDonut").addEventListener("click", (e) => {
   const seg = e.target.closest("[data-cat]");
   if (!seg) return;
@@ -1151,6 +1184,7 @@ $("#importFile").onchange = (e) => {
       if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
       if (!Array.isArray(state.recurring)) state.recurring = [];
       if (!Array.isArray(state.pots)) state.pots = [];
+      if (!state.budgets || typeof state.budgets !== "object") state.budgets = {};
       render();
       toast("Backup imported");
     } catch (err) { toast("Could not read that file"); }
@@ -1160,7 +1194,7 @@ $("#importFile").onchange = (e) => {
 };
 $("#wipeBtn").onclick = () => {
   if (!confirm("Erase ALL cards and transactions? This cannot be undone.")) return;
-  state = { cards: [], tx: [], shortcuts: [], recurring: [], pots: [] };
+  state = { cards: [], tx: [], shortcuts: [], recurring: [], pots: [], budgets: {} };
   render();
   toast("Everything erased");
 };

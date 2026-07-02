@@ -265,6 +265,13 @@ body {
 .cat-amt { font-weight: 600; white-space: nowrap; }
 .cat-pct { color: var(--muted); font-size: 12px; margin-left: 4px; font-weight: 500; }
 .cat-txs { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 2px; }
+.cat-budget { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.cat-budget.over { color: #ef4444; font-weight: 600; }
+.budget-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.budget-row:first-child { border-top: none; }
+.budget-row .cat-name { flex: 1; font-size: 14px; }
+.budget-row input { width: 108px; padding: 9px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font-size: 15px; }
+#budgetsList { max-height: 46vh; overflow-y: auto; margin-bottom: 12px; }
 
 /* Trends summary + filters */
 .tsum { display: flex; gap: 8px; margin-bottom: 14px; }

@@ -150,6 +150,25 @@ Plain HTML/CSS/JavaScript — no build step, no dependencies, no frameworks. Dat
 stored in `localStorage`. App icons and the in-app logo are generated from the
 source logo by `make_icons.py` / `make_cut.py` (standard-library Python only).
 
+### About the Firebase API key
+
+The Firebase web config in `index.html` (including `apiKey`) is **intentionally
+public** — a Firebase web API key is a project *identifier*, not a secret, and is
+required in client-side code (it's served on the live site regardless). It cannot
+be hidden in a browser app, so GitHub's secret scanner may flag it as a "leak";
+that's a false positive here.
+
+Your data is **not** protected by hiding this key — it's protected by:
+
+- **Firestore security rules** — each user can only read/write their own document
+  (`allow read, write: if request.auth != null && request.auth.uid == userId`).
+- **Authorized domains** in Firebase Authentication (only the app's own domain can
+  use Google sign-in).
+- Optionally, **API-key restrictions** in Google Cloud (limit the key to the app's
+  website and to the Identity Toolkit / Token Service / Firestore APIs).
+
+See Google's guidance: <https://firebase.google.com/docs/projects/api-keys>.
+
 Card brand marks come from [Simple Icons](https://simpleicons.org) (CC0); the
 Lloyds horse head is by Delapouite from [game-icons.net](https://game-icons.net)
 (CC BY 3.0). All bank names and logos are trademarks of their respective owners

@@ -282,6 +282,31 @@ body {
 .pay-card .pc-sub { color: var(--muted); font-size: 12.5px; }
 .pay-card .pc-bal { font-weight: 700; }
 
+/* ---------- Pots ---------- */
+.pots { display: flex; flex-direction: column; gap: 12px; }
+.pot-row { background: var(--panel-2); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.pot-top { display: flex; align-items: center; gap: 10px; }
+.pot-ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+.pot-name { flex: 1; font-weight: 600; }
+.pot-bal { font-weight: 700; }
+.pot-row .bar { height: 8px; border-radius: 6px; background: var(--panel); overflow: hidden; margin-top: 10px; }
+.pot-row .bar > span { display: block; height: 100%; border-radius: 6px; }
+.pot-sub { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+.pots-empty { color: var(--muted); font-size: 14px; }
+
+.pot-summary { text-align: center; margin-bottom: 16px; }
+.pot-summary .big { font-size: 30px; font-weight: 800; }
+.pot-summary .goal { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.pot-summary .bar { height: 10px; border-radius: 6px; background: var(--panel); overflow: hidden; margin: 12px 0 4px; }
+.pot-summary .bar > span { display: block; height: 100%; border-radius: 6px; }
+
+.pot-emojis { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.pot-emojis button {
+  width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); font-size: 20px; cursor: pointer;
+}
+.pot-emojis button.active { border-color: var(--blue); background: var(--panel-2); }
+
 /* ---------- Buttons ---------- */
 .wide-btn {
   width: 100%; padding: 14px; border-radius: 14px; border: none;

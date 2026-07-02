@@ -37,6 +37,14 @@
         </div>
         <div id="activityList" class="activity"></div>
       </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="potsTitle">Pots</h2>
+          <button class="link" id="addPotTop">+ New pot</button>
+        </div>
+        <div id="potsList" class="pots"></div>
+      </section>
     </main>
 
     <!-- TRENDS TAB -->
@@ -127,6 +135,61 @@
         <span>Help</span>
       </button>
     </nav>
+  </div>
+
+  <!-- ===== Pot detail sheet (move money / edit / delete) ===== -->
+  <div class="modal" id="potSheet" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 id="potSheetTitle">Pot</h3>
+        <button class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <div class="pot-summary" id="potSummary"></div>
+      <div class="seg" id="potDirSeg">
+        <button type="button" data-d="add" class="active">Add money</button>
+        <button type="button" data-d="take">Take out</button>
+      </div>
+      <label>Amount (£)
+        <input id="potAmount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00" />
+      </label>
+      <label>Card <small>(optional — logs a transfer)</small>
+        <select id="potCard"></select>
+      </label>
+      <div class="sheet-actions">
+        <button class="wide-btn" id="potMoveBtn">Move money</button>
+        <button class="wide-btn ghost" id="potEditBtn">Edit pot</button>
+        <button class="wide-btn danger" id="potDeleteBtn">Delete pot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Pot create/edit form ===== -->
+  <div class="modal" id="potFormModal" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 id="potFormTitle">New pot</h3>
+        <button class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <form id="potForm">
+        <label>Name
+          <input name="name" required maxlength="24" placeholder="e.g. Holiday, Emergency, New PC" />
+        </label>
+        <label>Icon
+          <div class="pot-emojis" id="potEmojis"></div>
+          <input type="hidden" name="emoji" />
+        </label>
+        <label>Colour
+          <div class="swatches" id="potSwatches"></div>
+        </label>
+        <label>Goal (£) <small>(optional)</small>
+          <input name="goal" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00" />
+        </label>
+        <label id="potStartWrap">Starting amount (£)
+          <input name="balance" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00" />
+        </label>
+        <button type="submit" class="wide-btn">Save pot</button>
+      </form>
+    </div>
   </div>
 
   <!-- ===== Lock screen ===== -->

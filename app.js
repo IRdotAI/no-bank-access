@@ -153,6 +153,8 @@ function load() {
 }
 if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
 if (!Array.isArray(state.recurring)) state.recurring = [];
+if (!Array.isArray(state.pots)) state.pots = [];
+const POT_EMOJIS = ["🐷", "🏝️", "🏠", "🚗", "✈️", "🎁", "💻", "🎓", "🚨", "💍", "🎮", "⭐"];
 function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
 
 /* ---------- Recurring payments ---------- */
@@ -244,9 +246,33 @@ function toast(msg) {
 function render() {
   renderCards();
   renderActivity();
+  renderPots();
   renderPayments();
   renderTrends();
   save();
+}
+
+function potTotal() { return state.pots.reduce((s, p) => s + p.balance, 0); }
+
+function renderPots() {
+  $("#potsTitle").textContent = state.pots.length ? `Pots · ${money2(potTotal())}` : "Pots";
+  const el = $("#potsList");
+  if (!state.pots.length) {
+    el.innerHTML = `<div class="pots-empty">No pots yet. Tap “+ New pot” to start saving towards something.</div>`;
+    return;
+  }
+  el.innerHTML = state.pots.map(p => {
+    const pct = p.goal > 0 ? Math.min(100, Math.round(p.balance / p.goal * 100)) : null;
+    return `<div class="pot-row" data-pot="${p.id}">
+      <div class="pot-top">
+        <span class="pot-ico" style="background:${p.color}33">${p.emoji || "🐷"}</span>
+        <span class="pot-name">${esc(p.name)}</span>
+        <span class="pot-bal">${money2(p.balance)}</span>
+      </div>
+      ${p.goal > 0 ? `<div class="bar"><span style="width:${pct}%;background:${p.color}"></span></div>
+        <div class="pot-sub">${money2(p.balance)} of ${money2(p.goal)} · ${pct}%</div>` : ""}
+    </div>`;
+  }).join("");
 }
 
 function renderCards() {
@@ -848,8 +874,117 @@ $("#deleteTxBtn").onclick = () => {
 
 $("#addTxTop").onclick = () => openTxModal();
 
+/* ---------- Pots ---------- */
+const potFormModal = $("#potFormModal");
+const potForm = $("#potForm");
+const potSheet = $("#potSheet");
+let editingPot = null;
+let activePot = null;
+let potColor = CARD_COLORS[0];
+let potEmoji = POT_EMOJIS[0];
+let potDir = "add";
+
+function buildPotPickers() {
+  $("#potEmojis").innerHTML = POT_EMOJIS.map(e =>
+    `<button type="button" data-e="${e}" class="${e === potEmoji ? "active" : ""}">${e}</button>`).join("");
+  $$("#potEmojis button").forEach(b => b.onclick = () => {
+    potEmoji = b.dataset.e; potForm.emoji.value = potEmoji;
+    $$("#potEmojis button").forEach(x => x.classList.toggle("active", x === b));
+  });
+  $("#potSwatches").innerHTML = CARD_COLORS.map(c =>
+    `<button type="button" style="background:${c}" data-color="${c}" class="${c === potColor ? "active" : ""}"></button>`).join("");
+  $$("#potSwatches button").forEach(b => b.onclick = () => {
+    potColor = b.dataset.color;
+    $$("#potSwatches button").forEach(x => x.classList.toggle("active", x === b));
+  });
+}
+
+function openPotForm(pot = null) {
+  editingPot = pot;
+  potForm.reset();
+  $("#potFormTitle").textContent = pot ? "Edit pot" : "New pot";
+  potColor = pot ? pot.color : CARD_COLORS[0];
+  potEmoji = pot ? (pot.emoji || POT_EMOJIS[0]) : POT_EMOJIS[0];
+  buildPotPickers();
+  $("#potStartWrap").hidden = !!pot;   // starting amount only when creating
+  if (pot) { potForm.name.value = pot.name; potForm.goal.value = pot.goal || ""; }
+  potForm.emoji.value = potEmoji;
+  potFormModal.hidden = false;
+}
+
+potForm.onsubmit = (e) => {
+  e.preventDefault();
+  const data = { name: potForm.name.value.trim(), goal: parseFloat(potForm.goal.value) || 0, color: potColor, emoji: potEmoji };
+  if (editingPot) { Object.assign(editingPot, data); toast("Pot updated"); }
+  else { state.pots.push({ id: uid(), balance: parseFloat(potForm.balance.value) || 0, ...data }); toast("Pot created"); }
+  potFormModal.hidden = true;
+  render();
+};
+$("#addPotTop").onclick = () => openPotForm();
+
+function setPotDir(d) {
+  potDir = d;
+  $$("#potDirSeg button").forEach(b => b.classList.toggle("active", b.dataset.d === d));
+}
+$$("#potDirSeg button").forEach(b => b.onclick = () => setPotDir(b.dataset.d));
+
+function openPotSheet(pot) {
+  activePot = pot;
+  setPotDir("add");
+  $("#potSheetTitle").textContent = `${pot.emoji || "🐷"} ${pot.name}`;
+  $("#potAmount").value = "";
+  $("#potCard").innerHTML = `<option value="">Just track (no card)</option>` +
+    state.cards.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  const pct = pot.goal > 0 ? Math.min(100, Math.round(pot.balance / pot.goal * 100)) : null;
+  $("#potSummary").innerHTML = `<div class="big">${moneyHTML(pot.balance)}</div>` +
+    (pot.goal > 0
+      ? `<div class="goal">of ${money2(pot.goal)} goal · ${pct}%</div>
+         <div class="bar"><span style="width:${pct}%;background:${pot.color}"></span></div>`
+      : `<div class="goal">no goal set</div>`);
+  potSheet.hidden = false;
+}
+
+$("#potMoveBtn").onclick = () => {
+  if (!activePot) return;
+  const amt = Math.abs(parseFloat($("#potAmount").value) || 0);
+  if (amt <= 0) { toast("Enter an amount"); return; }
+  if (potDir === "take" && amt > activePot.balance) { toast("Not enough in the pot"); return; }
+  const cardId = $("#potCard").value;
+  if (cardId) {
+    state.tx.push({
+      id: uid(), dir: potDir === "add" ? "out" : "in", amount: amt,
+      where: activePot.name + (potDir === "add" ? " (into pot)" : " (from pot)"),
+      cardId, when: new Date().toISOString(), category: "savings", note: "pot transfer",
+    });
+  }
+  activePot.balance += potDir === "add" ? amt : -amt;
+  save();
+  potSheet.hidden = true;
+  render();
+  toast(potDir === "add" ? `Added to ${activePot.name}` : `Took out of ${activePot.name}`);
+};
+$("#potEditBtn").onclick = () => { const p = activePot; potSheet.hidden = true; openPotForm(p); };
+$("#potDeleteBtn").onclick = () => {
+  if (!activePot) return;
+  const msg = activePot.balance > 0
+    ? `Delete “${activePot.name}”? Its ${money2(activePot.balance)} won't be returned to a card.`
+    : "Delete this pot?";
+  if (!confirm(msg)) return;
+  state.pots = state.pots.filter(p => p.id !== activePot.id);
+  potSheet.hidden = true;
+  save();
+  render();
+  toast("Pot deleted");
+};
+
 /* ---------- Delegated taps for cards & transactions ---------- */
 document.body.addEventListener("click", (e) => {
+  const potEl = e.target.closest("[data-pot]");
+  if (potEl) {
+    const p = state.pots.find(x => x.id === potEl.dataset.pot);
+    if (p) openPotSheet(p);
+    return;
+  }
   const cardEl = e.target.closest("[data-card]");
   if (cardEl) {
     const id = cardEl.dataset.card;
@@ -973,6 +1108,7 @@ $("#importFile").onchange = (e) => {
       state = data;
       if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
       if (!Array.isArray(state.recurring)) state.recurring = [];
+      if (!Array.isArray(state.pots)) state.pots = [];
       render();
       toast("Backup imported");
     } catch (err) { toast("Could not read that file"); }
@@ -982,7 +1118,7 @@ $("#importFile").onchange = (e) => {
 };
 $("#wipeBtn").onclick = () => {
   if (!confirm("Erase ALL cards and transactions? This cannot be undone.")) return;
-  state = { cards: [], tx: [], shortcuts: [], recurring: [] };
+  state = { cards: [], tx: [], shortcuts: [], recurring: [], pots: [] };
   render();
   toast("Everything erased");
 };

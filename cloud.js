@@ -40,6 +40,14 @@ async function init() {
   let unsub = null;
 
   const setStatus = (t) => { if (statusEl) statusEl.textContent = t; };
+  function markCloudActive() {
+    try {
+      localStorage.setItem("nba.cloudOn", "1");
+      localStorage.setItem("nba.lastBackup", Date.now().toString());
+      const b = document.getElementById("backupBanner");
+      if (b) b.hidden = true;   // no need to nag about local backups when synced
+    } catch (_) {}
+  }
 
   // finish a redirect sign-in if one was in progress (mobile fallback)
   getRedirectResult(auth).catch(() => {});
@@ -57,10 +65,12 @@ async function init() {
       signOutBtn.hidden = false;
       signOutBtn.textContent = `Sign out (${user.email || "signed in"})`;
       setStatus("Syncing…");
+      markCloudActive();
       startSync();
     } else {
       uid = null; firstSnap = true;
       if (unsub) { unsub(); unsub = null; }
+      localStorage.removeItem("nba.cloudOn");
       signInBtn.hidden = false;
       signOutBtn.hidden = true;
       setStatus("Not signed in — data stays on this device.");
@@ -72,7 +82,7 @@ async function init() {
     const state = window.nbaGetState ? window.nbaGetState() : null;
     if (!state) return;
     setDoc(doc(db, "users", uid), { state: JSON.stringify(state), updatedAt: Date.now() })
-      .then(() => setStatus("Synced ✓"))
+      .then(() => { markCloudActive(); setStatus("Synced ✓"); })
       .catch(() => setStatus("Sync error — will retry."));
   }
 

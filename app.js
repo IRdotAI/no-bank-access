@@ -1214,6 +1214,7 @@ function hideBackupBanner() { $("#backupBanner").hidden = true; }
 $("#backupDismiss").onclick = hideBackupBanner;
 
 function checkBackupReminder() {
+  if (localStorage.getItem("nba.cloudOn") === "1") return;   // cloud sync handles backups
   const hasData = state.cards.length || state.tx.length || state.pots.length;
   const last = parseInt(localStorage.getItem(LASTBK_KEY) || "0", 10);
   const days = (Date.now() - last) / 86400000;

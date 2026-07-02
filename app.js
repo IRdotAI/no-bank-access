@@ -707,6 +707,36 @@ $("#deleteCardBtn").onclick = () => {
 $("#addCardTop").onclick = () => openCardModal();
 $("#addCardBtn").onclick = () => openCardModal();
 
+/* ---------- Transfer between cards ---------- */
+const transferModal = $("#transferModal");
+const transferForm = $("#transferForm");
+function openTransfer() {
+  if (state.cards.length < 2) { toast("Add a second card first"); return; }
+  const opts = state.cards.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  transferForm.from.innerHTML = opts;
+  transferForm.to.innerHTML = opts;
+  transferForm.to.selectedIndex = 1;
+  transferForm.amount.value = "";
+  transferModal.hidden = false;
+}
+$("#transferBtn").onclick = openTransfer;
+transferForm.onsubmit = (e) => {
+  e.preventDefault();
+  const from = transferForm.from.value, to = transferForm.to.value;
+  const amt = Math.abs(parseFloat(transferForm.amount.value) || 0);
+  if (from === to) { toast("Pick two different cards"); return; }
+  if (amt <= 0) { toast("Enter an amount"); return; }
+  const fromC = state.cards.find(c => c.id === from);
+  const toC = state.cards.find(c => c.id === to);
+  const now = new Date().toISOString();
+  state.tx.push({ id: uid(), dir: "out", amount: amt, where: "Transfer to " + toC.name, cardId: from, when: now, category: "transfers", note: "transfer" });
+  state.tx.push({ id: uid(), dir: "in", amount: amt, where: "Transfer from " + fromC.name, cardId: to, when: now, category: "transfers", note: "transfer" });
+  save();
+  transferModal.hidden = true;
+  render();
+  toast(`Moved ${money2(amt)} to ${toC.name}`);
+};
+
 /* ---------- Transaction modal ---------- */
 const txModal = $("#txModal");
 const txForm = $("#txForm");

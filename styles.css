@@ -59,6 +59,13 @@ body {
 .icon-btn.add-tx { background: var(--red); }
 .icon-btn.add-card { background: var(--blue); }
 
+/* ---------- Net worth ---------- */
+.networth { text-align: center; padding: 6px 0 18px; }
+.networth small { color: var(--muted); font-size: 13px; }
+.networth .nw-amount { font-size: 34px; font-weight: 800; margin-top: 2px; }
+.networth .nw-amount small { font-size: 18px; opacity: .8; }
+.networth .nw-break { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+
 /* ---------- Cards ---------- */
 .cards { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
 

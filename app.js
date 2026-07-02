@@ -244,6 +244,7 @@ function toast(msg) {
 
 /* ---------- Rendering ---------- */
 function render() {
+  renderNetWorth();
   renderCards();
   renderActivity();
   renderPots();
@@ -253,6 +254,17 @@ function render() {
 }
 
 function potTotal() { return state.pots.reduce((s, p) => s + p.balance, 0); }
+
+function renderNetWorth() {
+  const el = $("#netWorth");
+  if (!state.cards.length && !state.pots.length) { el.hidden = true; return; }
+  el.hidden = false;
+  const cardsTotal = state.cards.reduce((s, c) => s + cardBalance(c), 0);
+  const pots = potTotal();
+  el.innerHTML = `<small>Total balance</small>
+    <div class="nw-amount">${moneyHTML(cardsTotal + pots)}</div>
+    <div class="nw-break">${money2(cardsTotal)} in cards${pots ? ` · ${money2(pots)} in pots` : ""}</div>`;
+}
 
 function renderPots() {
   $("#potsTitle").textContent = state.pots.length ? `Pots · ${money2(potTotal())}` : "Pots";

@@ -155,8 +155,33 @@ if (!Array.isArray(state.shortcuts)) state.shortcuts = [];
 if (!Array.isArray(state.recurring)) state.recurring = [];
 if (!Array.isArray(state.pots)) state.pots = [];
 if (!state.budgets || typeof state.budgets !== "object") state.budgets = {};
+
+/* Fill any missing collections on a state object (used for cloud restores). */
+function normalizeState(s) {
+  s = s || {};
+  if (!Array.isArray(s.cards)) s.cards = [];
+  if (!Array.isArray(s.tx)) s.tx = [];
+  if (!Array.isArray(s.shortcuts)) s.shortcuts = [];
+  if (!Array.isArray(s.recurring)) s.recurring = [];
+  if (!Array.isArray(s.pots)) s.pots = [];
+  if (!s.budgets || typeof s.budgets !== "object") s.budgets = {};
+  return s;
+}
+
+/* Bridge for optional cloud sync (cloud.js). */
+window.nbaGetState = () => state;
+window.nbaApplyCloud = (s) => {
+  state = normalizeState(s);
+  localStorage.setItem(STORE, JSON.stringify(state));
+  selectedCardId = null;
+  render();
+};
+
 const POT_EMOJIS = ["🐷", "🏝️", "🏠", "🚗", "✈️", "🎁", "💻", "🎓", "🚨", "💍", "🎮", "⭐"];
-function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
+function save() {
+  localStorage.setItem(STORE, JSON.stringify(state));
+  if (window.nbaCloudPush) window.nbaCloudPush();   // push to cloud if sync is on
+}
 
 /* ---------- Recurring payments ---------- */
 const FREQ_LABEL = { weekly: "Weekly", biweekly: "Every 2 weeks", monthly: "Monthly" };

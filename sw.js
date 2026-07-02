@@ -1,10 +1,11 @@
 /* Service worker — caches the app shell so it works fully offline. */
-const CACHE = "nba-cache-v34";
+const CACHE = "nba-cache-v35";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./cloud.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -29,6 +30,8 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  // Let cross-origin requests (Firebase, Google auth) go straight to the network.
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;

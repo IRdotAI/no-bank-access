@@ -12,6 +12,18 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    /* Optional cloud sync — paste your Firebase web config here to enable it.
+       Left as placeholders = app stays fully local. */
+    window.NBA_FIREBASE_CONFIG = {
+      apiKey: "PASTE_API_KEY",
+      authDomain: "PASTE.firebaseapp.com",
+      projectId: "PASTE_PROJECT_ID",
+      storageBucket: "PASTE.appspot.com",
+      messagingSenderId: "PASTE_SENDER_ID",
+      appId: "PASTE_APP_ID"
+    };
+  </script>
 </head>
 <body>
   <div id="app">
@@ -112,6 +124,12 @@
           <li><strong>Pick a category</strong> — shopping, transfers, entertainment, charity and more.</li>
           <li><strong>Watch your balances</strong> — every entry updates the card and your Trends.</li>
         </ol>
+        <div class="panel-head"><h2>Cloud sync</h2></div>
+        <p class="muted">Sign in to back up and sync your data across devices. Optional — everything works locally without it.</p>
+        <button class="wide-btn ghost" id="cloudSignIn">Sign in with Google</button>
+        <button class="wide-btn ghost" id="cloudSignOut" hidden>Sign out</button>
+        <p class="muted" id="cloudStatus"></p>
+
         <div class="panel-head"><h2>Security</h2></div>
         <p class="muted">Lock the app with a 4-digit PIN. It's asked each time you open the app on this device.</p>
         <button class="wide-btn ghost" id="setPinBtn">Set / change app PIN</button>
@@ -359,5 +377,6 @@
   <div id="toast" class="toast" hidden></div>
 
   <script src="app.js"></script>
+  <script type="module" src="cloud.js"></script>
 </body>
 </html>

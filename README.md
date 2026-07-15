@@ -1,5 +1,7 @@
 # No Bank Access — Manual Transaction Tracker
 
+> Made by **RdotA**.
+
 A private, offline **PWA** for tracking your money **by hand**. Add the cards and
 accounts you actually use (Monzo, HSBC, Revolut, a credit card, cash…), log each
 payment yourself, and watch your balances, spending and savings — **with no bank
@@ -173,3 +175,7 @@ Card brand marks come from [Simple Icons](https://simpleicons.org) (CC0); the
 Lloyds horse head is by Delapouite from [game-icons.net](https://game-icons.net)
 (CC BY 3.0). All bank names and logos are trademarks of their respective owners
 and are used only to label a user's own manually-entered accounts.
+
+## Author
+
+Designed and built by **RdotA**.

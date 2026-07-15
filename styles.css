@@ -15,6 +15,15 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* App-like feel: no double-tap zoom, no accidental text selection on UI chrome. */
+html { touch-action: manipulation; }
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Still allow selecting/copying real content (amounts, notes) in inputs. */
+input, textarea, [contenteditable] { -webkit-user-select: text; user-select: text; }
 /* The hidden attribute must always win, even over display:flex on .modal/.toast */
 [hidden] { display: none !important; }
 html, body { margin: 0; padding: 0; }
